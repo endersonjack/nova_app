@@ -33,9 +33,7 @@ def _env_bool(name: str, default: bool = False) -> bool:
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 SECRET_KEY = os.environ.get(
-    'SECRET_KEY',
-    'django-insecure-h2rik63v&n-%asmh9c*=k%od$x!tl3ms*%dpq4*_3l8=4)l*^x',
-)
+    'SECRET_KEY')
 
 DEBUG = _env_bool('DEBUG', default=True)
 
@@ -43,8 +41,20 @@ _allowed = [h.strip() for h in os.environ.get('ALLOWED_HOSTS', '').split(',') if
 _railway_host = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '').strip()
 if _railway_host and _railway_host not in _allowed:
     _allowed.append(_railway_host)
+
+_is_railway = bool(
+    os.environ.get('RAILWAY_ENVIRONMENT', '').strip()
+    or os.environ.get('RAILWAY', '').strip()
+)
+# Só desenvolvimento local; nunca basta para o hostname público do Railway.
+_local_only_hosts = frozenset({'localhost', '127.0.0.1'})
+
 if not _allowed:
-    _allowed = ['localhost', '127.0.0.1']
+    _allowed = ['*'] if _is_railway else ['localhost', '127.0.0.1']
+elif _is_railway and _allowed and frozenset(_allowed) <= _local_only_hosts:
+    # Ex.: ALLOWED_HOSTS copiado do .env local para o painel — quebra o site na nuvem.
+    _allowed = ['*']
+
 ALLOWED_HOSTS = list(dict.fromkeys(_allowed))
 
 _csrf_origins = [o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
