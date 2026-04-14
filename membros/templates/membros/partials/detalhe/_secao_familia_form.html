@@ -1,0 +1,75 @@
+<div class="modal-body py-3">
+  <form class="app-modal-form membro-secao-form"
+        method="post"
+        hx-post="{{ action_url }}"
+        hx-target="#app-modal-content"
+        hx-swap="innerHTML"
+        hx-indicator="#app-modal-indicator"
+        hx-disabled-elt="find button[type=submit]">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger rounded-3">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.estado_civil.id_for_label }}">{{ form.estado_civil.label }}</label>
+          {{ form.estado_civil }}
+          {% for err in form.estado_civil.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="row g-3 mt-1">
+      <div class="col-md-6 position-relative">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="casado_com_search">{{ form.casado_com.label }}</label>
+          <input type="hidden" id="autocomplete_exclude" value="{{ membro.pk }}" />
+          <input type="search"
+                 id="casado_com_search"
+                 class="form-control rounded-3"
+                 placeholder="Digite para buscar…"
+                 value="{{ casado_com_label }}"
+                 autocomplete="off"
+                 hx-get="{% url 'membros:autocomplete' %}"
+                 hx-trigger="keyup changed delay:350ms"
+                 hx-target="#casado_com_results"
+                 hx-swap="innerHTML"
+                 hx-vals="js:{q: document.getElementById('casado_com_search').value, exclude: document.getElementById('autocomplete_exclude').value}" />
+          {{ form.casado_com }}
+          <div id="casado_com_results" class="js-autocomplete-host autocomplete-dropdown shadow-sm border rounded-3 mt-1 bg-white position-absolute start-0 end-0 z-3"></div>
+          {% for err in form.casado_com.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.data_casamento.id_for_label }}">{{ form.data_casamento.label }}</label>
+          {{ form.data_casamento }}
+          {% for err in form.data_casamento.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="mt-4 position-relative">
+      <p class="membro-field-label mb-2">Filhos (as)</p>
+      <div id="filhos-rows-container" aria-label="Filhos">
+        {% for item in filhos_iniciais %}
+          {% include "membros/partials/_filho_row.html" with item=item idx=forloop.counter0 %}
+        {% empty %}
+          {% include "membros/partials/_filho_row.html" with item=None idx=0 %}
+        {% endfor %}
+      </div>
+      <div class="d-flex flex-wrap align-items-center gap-3 mt-1">
+        <button type="button" class="btn btn-link btn-sm px-0 fw-semibold text-decoration-none" id="js-filho-add">+ filho</button>
+        <button type="button" class="btn btn-link btn-sm px-0 text-decoration-none text-muted" id="js-filho-cancel" disabled>cancelar</button>
+      </div>
+    </div>
+
+    <div class="modal-footer border-top mt-3 px-0 pb-0 pt-3 flex-wrap gap-2">
+      <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
+      <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+      <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3">Salvar</button>
+    </div>
+  </form>
+</div>

@@ -1,0 +1,20 @@
+<div class="modal-header border-bottom">
+  <h2 class="modal-title h5 text-danger mb-0" id="appModalLabel">Excluir membro</h2>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+</div>
+<div class="modal-body">
+  <p class="mb-0">Confirma a exclusão de <strong>{{ membro.nome_completo }}</strong>? Esta ação não pode ser desfeita.</p>
+  <form method="post"
+        action="{% url 'membros:delete' membro.pk %}"
+        class="d-flex flex-wrap gap-2 justify-content-end mt-4"
+        hx-post="{% url 'membros:delete' membro.pk %}"
+        hx-swap="none"
+        hx-indicator="#delete-modal-indicator">
+    {% csrf_token %}
+    <span id="delete-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-danger me-auto" role="status"></span>
+    <button type="button" class="btn btn-app btn-app-secondary" data-bs-dismiss="modal">
+      Cancelar
+    </button>
+    <button type="submit" class="btn btn-app btn-app-danger px-4">Excluir definitivamente</button>
+  </form>
+</div>

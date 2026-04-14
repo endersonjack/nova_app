@@ -1,0 +1,152 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Painel{% endblock %} · Nova</title>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css">
+  <link rel="stylesheet" href="{% static 'css/app.css' %}">
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="app-body">
+  {% csrf_token %}
+  <div id="appShell" class="app-shell d-flex flex-column flex-lg-row min-vh-100">
+    <nav class="app-sidebar flex-shrink-0 d-flex flex-column" id="appSidebar" aria-label="Menu principal">
+      <div class="sidebar-inner d-flex flex-column flex-grow-1 p-3 p-lg-4">
+        <div class="sidebar-user text-center mb-4">
+          <button type="button"
+                  class="app-sidebar-user-trigger d-inline-flex border-0 bg-transparent p-0 rounded-circle"
+                  id="app-sidebar-user-trigger"
+                  aria-expanded="true"
+                  aria-controls="appSidebar"
+                  aria-label="Recolher menu lateral"
+                  title="Recolher menu">
+            <span class="app-sidebar-user-avatar rounded-circle d-flex align-items-center justify-content-center fw-semibold text-white"
+                  aria-hidden="true">
+              {% if user.is_authenticated %}
+                {{ user.username|slice:":2"|upper }}
+              {% else %}
+                ?
+              {% endif %}
+            </span>
+          </button>
+          <p class="sidebar-user-name text-white fw-semibold mb-0 mt-2 small text-truncate" title="{% if user.is_authenticated %}{{ user.get_username }}{% else %}Visitante{% endif %}">
+            {% if user.is_authenticated %}{{ user.get_username }}{% else %}Visitante{% endif %}
+          </p>
+        </div>
+        <ul class="nav nav-pills flex-column gap-1 flex-grow-1">
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'dashboard_index' %}active{% endif %}"
+               href="{% url 'dashboard_index' %}"
+               title="Dashboard">
+              <i class="bi bi-speedometer2 fs-5"></i>
+              <span class="sidebar-link-text">Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'usuarios_index' %}active{% endif %}"
+               href="{% url 'usuarios_index' %}"
+               title="Usuários">
+              <i class="bi bi-people fs-5"></i>
+              <span class="sidebar-link-text">Usuários</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.namespace == 'membros' and request.resolver_match.url_name == 'membros_index' %}active{% endif %}"
+               href="{% url 'membros:membros_index' %}"
+               title="Membros">
+              <i class="bi bi-person-badge fs-5"></i>
+              <span class="sidebar-link-text">Membros</span>
+            </a>
+          </li>
+        </ul>
+        <div class="sidebar-footer-account mt-4 pt-3 border-top border-light border-opacity-25">
+          {% if user.is_authenticated %}
+            <a class="sidebar-footer-link d-flex align-items-center gap-2 text-white text-decoration-none py-2 rounded-3 px-2"
+               href="{% url 'admin:index' %}">
+              <i class="bi bi-gear fs-5 flex-shrink-0"></i>
+              <span class="sidebar-footer-label">Administração</span>
+            </a>
+            <form method="post" action="{% url 'admin:logout' %}" class="mt-1">
+              {% csrf_token %}
+              <button type="submit" class="sidebar-footer-link btn btn-link text-start text-danger text-decoration-none w-100 d-flex align-items-center gap-2 py-2 px-2 rounded-3 border-0">
+                <i class="bi bi-box-arrow-right fs-5 flex-shrink-0"></i>
+                <span class="sidebar-footer-label">Sair</span>
+              </button>
+            </form>
+          {% else %}
+            <a class="sidebar-footer-link d-flex align-items-center gap-2 text-white text-decoration-none py-2 rounded-3 px-2"
+               href="{% url 'admin:login' %}">
+              <i class="bi bi-box-arrow-in-right fs-5 flex-shrink-0"></i>
+              <span class="sidebar-footer-label">Entrar</span>
+            </a>
+          {% endif %}
+        </div>
+      </div>
+    </nav>
+
+    {# Área principal: topbar + conteúdo #}
+    <div class="app-main flex-grow-1 d-flex flex-column min-vh-100 min-w-0">
+      <header class="app-topbar sticky-top shadow-sm px-3 px-lg-4 py-2 d-flex align-items-center justify-content-between gap-3">
+        <div class="d-flex align-items-center gap-2 min-w-0">
+          <div class="text-truncate">
+            <h1 class="h5 mb-0 fw-semibold text-dark">{% block page_title %}Painel{% endblock %}</h1>
+            {% block page_subtitle %}{% endblock %}
+          </div>
+        </div>
+        <div class="d-flex align-items-center gap-2 gap-lg-3 flex-shrink-0">
+          <form class="app-search d-none d-md-block" role="search" action="#" onsubmit="return false;">
+            <div class="input-group input-group-sm">
+              <span class="input-group-text bg-light border-end-0"><i class="bi bi-search text-muted"></i></span>
+              <input type="search" class="form-control border-start-0 ps-0" placeholder="Buscar…" aria-label="Buscar">
+            </div>
+          </form>
+          <button type="button" class="btn btn-app btn-app-secondary btn-sm position-relative" title="Notificações" aria-label="Notificações">
+            <i class="bi bi-bell"></i>
+            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" style="font-size:0.55rem;padding:0.2em 0.35em;">3</span>
+          </button>
+        </div>
+      </header>
+
+      <main class="app-content flex-grow-1">
+        {% block content %}{% endblock %}
+      </main>
+    </div>
+  </div>
+
+  <div id="app-toast-container" class="app-toast-container" aria-live="polite" aria-relevant="additions"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" crossorigin="anonymous"></script>
+  <script src="https://unpkg.com/htmx.org@1.9.12" crossorigin="anonymous"></script>
+  <script src="{% static 'js/app-toast.js' %}"></script>
+  {% if messages %}
+  <script>
+  (function () {
+    var list = [
+      {% for message in messages %}
+      { text: "{{ message|escapejs }}", variant: "{% if 'error' in message.tags or 'debug' in message.tags %}danger{% elif 'warning' in message.tags %}warning{% elif 'success' in message.tags %}success{% else %}info{% endif %}" }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ];
+    function go() {
+      if (!window.AppToast) return;
+      list.forEach(function (m) { AppToast.show(m.text, { variant: m.variant }); });
+    }
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', go);
+    else go();
+  })();
+  </script>
+  {% endif %}
+  <script src="{% static 'js/htmx-app.js' %}"></script>
+  <script src="{% static 'js/sidebar.js' %}"></script>
+  {% block extra_js %}{% endblock %}
+
+  {# Modal global (HTMX carrega o conteúdo em #app-modal-content) #}
+  <div class="modal fade" id="appModal" tabindex="-1" aria-labelledby="appModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-scrollable" id="app-modal-dialog">
+      <div class="modal-content border-0 shadow" id="app-modal-content"></div>
+    </div>
+  </div>
+</body>
+</html>

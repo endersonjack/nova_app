@@ -1,0 +1,65 @@
+<div class="membro-secao" data-secao="{{ secao_slug }}">
+  {% include "membros/partials/detalhe/_secao_header_display.html" with icon="bi-person-vcard" titulo="Dados pessoais" %}
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Nome completo</span>
+        <p class="mb-0 text-dark">{{ membro.nome_completo|default:"—" }}</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Conhecido por</span>
+        <p class="mb-0 text-dark">{{ membro.nome_conhecido|default:"—" }}</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Sexo</span>
+        <p class="mb-0 text-dark">{{ membro.get_sexo_display }}</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">CPF</span>
+        <p class="mb-0 text-dark">{{ membro.cpf_formatado|default:"—" }}</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Data de nascimento</span>
+        <p class="mb-0 text-dark">{% if membro.data_nascimento %}{{ membro.data_nascimento|date:"d/m/Y" }}{% else %}—{% endif %}</p>
+      </div>
+    </div>
+    <div class="col-md-4">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Telefone</span>
+        <p class="mb-0 text-dark">{{ membro.telefone_formatado|default:"—" }}</p>
+      </div>
+    </div>
+    <div class="col-md-8">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Endereço</span>
+        <p class="mb-0 text-dark">{% if membro.endereco %}{{ membro.endereco|linebreaksbr }}{% else %}—{% endif %}</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">E-mail</span>
+        <p class="mb-0 text-dark">{{ membro.email|default:"—" }}</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Foto</span>
+        {% if membro.foto %}
+          <p class="mb-0 mt-1">
+            <a href="{{ membro.foto.url }}" target="_blank" rel="noopener noreferrer" class="link-primary">Abrir foto</a>
+          </p>
+        {% else %}
+          <p class="mb-0 text-muted">Nenhuma foto cadastrada.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

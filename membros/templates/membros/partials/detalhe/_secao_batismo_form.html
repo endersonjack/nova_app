@@ -1,0 +1,37 @@
+<div class="modal-body py-3">
+  <form class="app-modal-form membro-secao-form"
+        method="post"
+        hx-post="{{ action_url }}"
+        hx-target="#app-modal-content"
+        hx-swap="innerHTML"
+        hx-indicator="#app-modal-indicator"
+        hx-disabled-elt="find button[type=submit]">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger rounded-3">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="row g-3">
+      <div class="col-md-4">
+        <div class="membro-field-shell border rounded-3 px-3 py-3 d-flex align-items-center gap-2">
+          {{ form.batizado }}
+          <label class="form-check-label fw-semibold mb-0" for="{{ form.batizado.id_for_label }}">{{ form.batizado.label }}</label>
+          {% for err in form.batizado.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-md-8">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.data_batismo.id_for_label }}">{{ form.data_batismo.label }}</label>
+          {{ form.data_batismo }}
+          {% for err in form.data_batismo.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer border-top mt-3 px-0 pb-0 pt-3 flex-wrap gap-2">
+      <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
+      <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+      <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3">Salvar</button>
+    </div>
+  </form>
+</div>

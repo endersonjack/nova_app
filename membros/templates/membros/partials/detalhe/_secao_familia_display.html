@@ -1,0 +1,37 @@
+<div class="membro-secao" data-secao="{{ secao_slug }}">
+  {% include "membros/partials/detalhe/_secao_header_display.html" with icon="bi-people" titulo="Família" %}
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Estado civil</span>
+        <p class="mb-0 text-dark">{% if membro.estado_civil %}{{ membro.get_estado_civil_display }}{% else %}—{% endif %}</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Casado(a) / união com</span>
+        <p class="mb-0 text-dark">{% if membro.casado_com %}{{ membro.casado_com }}{% else %}—{% endif %}</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Data de casamento</span>
+        <p class="mb-0 text-dark">{% if membro.data_casamento %}{{ membro.data_casamento|date:"d/m/Y" }}{% else %}—{% endif %}</p>
+      </div>
+    </div>
+  </div>
+  <div class="mt-4">
+    <p class="membro-field-label mb-2">Filhos (as)</p>
+    {% with filhos=membro.filhos.all %}
+      {% if filhos %}
+        <ul class="list-group list-group-flush border rounded-3 overflow-hidden">
+          {% for f in filhos %}
+            <li class="list-group-item py-2">{{ f }}</li>
+          {% endfor %}
+        </ul>
+      {% else %}
+        <p class="text-muted small mb-0">Nenhum filho vinculado.</p>
+      {% endif %}
+    {% endwith %}
+  </div>
+</div>

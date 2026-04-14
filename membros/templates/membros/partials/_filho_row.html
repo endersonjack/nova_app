@@ -1,0 +1,22 @@
+{# item: dict com id e label, ou None para linha vazia #}
+<div class="js-filho-row mb-3 position-relative" data-idx="{{ idx }}">
+  <input type="hidden"
+         name="filhos"
+         value="{% if item %}{{ item.id }}{% endif %}"
+         class="js-filho-hidden"
+         id="filho_hidden_{{ idx }}" />
+  <input type="search"
+         id="filho_search_{{ idx }}"
+         class="form-control js-filho-search app-modal-form__input"
+         aria-label="Buscar membro (filho)"
+         placeholder="Buscar membro…"
+         value="{% if item %}{{ item.label }}{% endif %}"
+         autocomplete="off"
+         hx-get="{% url 'membros:autocomplete' %}"
+         hx-trigger="keyup changed delay:350ms"
+         hx-target="#filho_results_{{ idx }}"
+         hx-swap="innerHTML"
+         hx-vals="js:{q: document.getElementById('filho_search_{{ idx }}').value, exclude: document.getElementById('autocomplete_exclude').value}" />
+  <div id="filho_results_{{ idx }}"
+       class="js-autocomplete-host autocomplete-dropdown shadow-sm border rounded-3 mt-1 bg-white position-absolute start-0 end-0 z-3"></div>
+</div>

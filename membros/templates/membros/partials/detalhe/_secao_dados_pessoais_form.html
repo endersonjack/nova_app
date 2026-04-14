@@ -1,0 +1,83 @@
+{% load static %}
+<div class="modal-body py-3">
+  <form class="app-modal-form membro-secao-form"
+        method="post"
+        enctype="multipart/form-data"
+        hx-encoding="multipart/form-data"
+        hx-post="{{ action_url }}"
+        hx-target="#app-modal-content"
+        hx-swap="innerHTML"
+        hx-indicator="#app-modal-indicator"
+        hx-disabled-elt="find button[type=submit]">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger rounded-3">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="row g-3">
+      <div class="col-md-6">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.nome_completo.id_for_label }}">{{ form.nome_completo.label }}</label>
+          {{ form.nome_completo }}
+          {% for err in form.nome_completo.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.nome_conhecido.id_for_label }}">{{ form.nome_conhecido.label }}</label>
+          {{ form.nome_conhecido }}
+          {% for err in form.nome_conhecido.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.cpf.id_for_label }}">{{ form.cpf.label }}</label>
+          {{ form.cpf }}
+          {% if form.cpf.help_text %}<div class="form-text small">{{ form.cpf.help_text }}</div>{% endif %}
+          {% for err in form.cpf.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.data_nascimento.id_for_label }}">{{ form.data_nascimento.label }}</label>
+          {{ form.data_nascimento }}
+          {% for err in form.data_nascimento.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.telefone.id_for_label }}">{{ form.telefone.label }}</label>
+          {{ form.telefone }}
+          {% for err in form.telefone.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.endereco.id_for_label }}">{{ form.endereco.label }}</label>
+          {{ form.endereco }}
+          {% for err in form.endereco.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.email.id_for_label }}">{{ form.email.label }}</label>
+          {{ form.email }}
+          {% for err in form.email.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.foto.id_for_label }}">{{ form.foto.label }}</label>
+          {{ form.foto }}
+          {% for err in form.foto.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+    </div>
+
+    <div class="modal-footer border-top mt-3 px-0 pb-0 pt-3 flex-wrap gap-2">
+      <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
+      <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+      <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3">Salvar</button>
+    </div>
+  </form>
+</div>

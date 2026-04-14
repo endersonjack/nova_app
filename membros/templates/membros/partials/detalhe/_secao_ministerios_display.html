@@ -1,0 +1,12 @@
+<div class="membro-secao" data-secao="{{ secao_slug }}">
+  {% include "membros/partials/detalhe/_secao_header_display.html" with icon="bi-diagram-3" titulo="Ministérios" %}
+  <p class="text-muted small mb-3">Participação em ministérios, equipes ou serviços na igreja.</p>
+  <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+    <span class="membro-field-label">Ministérios</span>
+    {% if membro.ministerios %}
+      <div class="text-dark small mt-1">{{ membro.ministerios|linebreaksbr }}</div>
+    {% else %}
+      <p class="mb-0 text-muted">Nenhuma informação cadastrada.</p>
+    {% endif %}
+  </div>
+</div>

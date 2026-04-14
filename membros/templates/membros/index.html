@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Membros{% endblock %}
+{% block page_title %}Membros{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+  <p class="text-muted mb-0">Cadastro de membros da igreja.</p>
+  <button type="button"
+          class="btn btn-app btn-app-primary px-4 position-relative"
+          hx-get="{% url 'membros:modal_create' %}"
+          hx-target="#app-modal-content"
+          hx-swap="innerHTML"
+          hx-indicator="#btn-novo-membro-ind">
+    <span id="btn-novo-membro-ind" class="htmx-indicator spinner-border spinner-border-sm me-1" role="status"></span>
+    <i class="bi bi-person-plus me-1"></i> Novo membro
+  </button>
+</div>
+
+<div class="position-relative">
+  <span id="lista-htmx-indicator" class="htmx-indicator position-absolute top-0 end-0 mt-n1 me-1 z-2" aria-hidden="true">
+    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+  </span>
+  <div id="membro-lista-wrap"
+       hx-get="{% url 'membros:lista_partial' %}"
+       hx-trigger="load, refresh from:body"
+       hx-swap="innerHTML"
+       hx-indicator="#lista-htmx-indicator">
+    {% include "membros/partials/_skeleton.html" %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'membros/js/admin_cpf_mask.js' %}"></script>
+{% endblock %}

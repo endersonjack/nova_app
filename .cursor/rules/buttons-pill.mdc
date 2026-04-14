@@ -1,0 +1,34 @@
+---
+description: Padrão visual de botões pill (primário azul, secundário branco)
+alwaysApply: true
+---
+
+# Botões (padrão plataforma)
+
+## Forma
+
+- Sempre **pill** (cantos totalmente arredondados): classes **`btn`** + **`btn-app`** + variante.
+- Texto em **negrito** (`font-weight` 700 já vem em `.btn-app`).
+- Ícone **à esquerda** do texto quando houver ícone; use `gap` (já no `.btn-app`).
+- Espaçamento interno confortável; versões compactas: **`btn-sm`** junto com **`btn-app`**.
+
+## Variantes (CSS em `static/css/app.css`)
+
+| Uso | Classes |
+|-----|---------|
+| Ação principal (salvar, confirmar, CTA) | `btn btn-app btn-app-primary` |
+| Voltar, cancelar, ações neutras em fundo claro | `btn btn-app btn-app-secondary` |
+| Excluir / destrutivo | `btn btn-app btn-app-danger` |
+| Controles na **sidebar** escura | `btn btn-app btn-app-sidebar btn-sm` (ou `btn-app-sidebar` conforme contexto) |
+| Botões menores (tabelas, ícones) | `btn btn-app btn-app-secondary btn-sm` (ou `btn-app-primary btn-sm`) |
+
+## Comportamento
+
+- Definir **hover** coerente (já no CSS): primário escurece levemente; secundário ganha sombra um pouco maior.
+- **Foco** visível (`:focus-visible`) para teclado.
+- **Estados desabilitados**: `disabled` com opacidade reduzida.
+
+## O que evitar
+
+- Não usar só `btn-primary` / `btn-light` sem `btn-app` em telas novas — o visual pill e sombras vêm do sistema **`btn-app-*`**.
+- Não misturar cantos “quadrados” com o padrão pill na mesma barra de ações.

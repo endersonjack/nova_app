@@ -1,0 +1,10 @@
+<div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-4">
+  <h2 class="membro-secao-title mb-0 flex-grow-1 min-w-0"><i class="bi {{ icon }}"></i> {{ titulo }}</h2>
+  <button type="button"
+          class="btn btn-app btn-app-secondary btn-sm flex-shrink-0"
+          hx-get="{% url 'membros:secao_modal' membro.pk secao_slug %}"
+          hx-target="#app-modal-content"
+          hx-swap="innerHTML">
+    <i class="bi bi-pencil-square me-1"></i> Editar seção
+  </button>
+</div>

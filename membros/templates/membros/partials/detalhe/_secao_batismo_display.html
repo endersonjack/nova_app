@@ -1,0 +1,17 @@
+<div class="membro-secao" data-secao="{{ secao_slug }}">
+  {% include "membros/partials/detalhe/_secao_header_display.html" with icon="bi-droplet" titulo="Batismo" %}
+  <div class="row g-3">
+    <div class="col-md-6">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">É batizado(a)?</span>
+        <p class="mb-0 text-dark">{% if membro.batizado %}Sim{% else %}Não{% endif %}</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Data de batismo</span>
+        <p class="mb-0 text-dark">{% if membro.data_batismo %}{{ membro.data_batismo|date:"d/m/Y" }}{% else %}—{% endif %}</p>
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,25 @@
+---
+description: HTMX, loading, modais e padrão de botões para o projeto Nova
+alwaysApply: true
+---
+
+# UI: HTMX, loading e modais
+
+## HTMX
+
+- Usar **HTMX** para: estados de loading, **modais**, navegação/URLs (`hx-get`, `hx-push-url`, `hx-boost` quando fizer sentido), requisições parciais e demais interações que precisem de troca de conteúdo sem recarregar a página inteira quando couber no desenho da feature.
+
+## Loading
+
+- Sempre indicar **loading** ao trocar de página e ao acionar **botões** (spinner, texto “Carregando…”, ou estado `disabled` + indicador).
+- Em **listas** e **cards**, usar **skeleton loading** durante o carregamento de dados, não deixar área vazia sem feedback.
+
+## Modais
+
+- **Criar** e **Editar**: sempre via **modal** (formulário dentro do modal ou carregado por HTMX no modal).
+- **Confirmar exclusão**: sempre via **modal** de confirmação (título claro, texto de aviso, botões Cancelar / Excluir).
+- O botão de **excluir** deve ficar **dentro do modal de Editar** (fluxo: abrir edição → excluir de lá), não como ação solta na listagem, salvo exceção explícita do produto.
+
+## Botões
+
+- Seguir o padrão **pill** (primário azul, secundário branco com sombra): ver regra **`buttons-pill.mdc`** e classes `btn-app` em `static/css/app.css`.

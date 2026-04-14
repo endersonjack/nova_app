@@ -1,0 +1,27 @@
+{# Skeleton para lista (cards em linha) #}
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th>Nome</th>
+            <th>E-mail</th>
+            <th>Telefone</th>
+            <th class="text-end" style="width:7rem;">Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for i in "12345" %}
+          <tr class="placeholder-glow">
+            <td><span class="placeholder col-8 rounded-pill"></span></td>
+            <td><span class="placeholder col-10 rounded-pill"></span></td>
+            <td><span class="placeholder col-6 rounded-pill"></span></td>
+            <td class="text-end"><span class="placeholder col-6 rounded-pill float-end"></span></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
