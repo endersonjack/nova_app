@@ -33,7 +33,9 @@ def _env_bool(name: str, default: bool = False) -> bool:
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 SECRET_KEY = os.environ.get(
-    'SECRET_KEY')
+    'SECRET_KEY',
+    'django-insecure-h2rik63v&n-%asmh9c*=k%od$x!tl3ms*%dpq4*_3l8=4)l*^x',
+)
 
 DEBUG = _env_bool('DEBUG', default=True)
 
@@ -138,7 +140,7 @@ elif _postgres_host:
             'NAME': os.environ.get('POSTGRES_DB', 'railway'),
             'USER': os.environ.get('POSTGRES_USER', 'postgres'),
             'PASSWORD': os.environ.get('POSTGRES_PASSWORD', ''),
-            'HOST': postgres.railway.internal,
+            'HOST': _postgres_host,
             'PORT': os.environ.get('POSTGRES_PORT', '5432'),
             'CONN_MAX_AGE': 600,
             'CONN_HEALTH_CHECKS': True,
@@ -216,6 +218,7 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-    SECURE_SSL_REDIRECT = True
+    # No Railway o healthcheck interno chama HTTP; redirect para HTTPS quebra o deploy (502).
+    SECURE_SSL_REDIRECT = (not _is_railway) and _env_bool('SECURE_SSL_REDIRECT', default=True)
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
