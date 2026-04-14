@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 import os
 from pathlib import Path
+from urllib.parse import quote, urlparse, urlunparse
 
 import dj_database_url
 from dotenv import load_dotenv
@@ -27,6 +28,35 @@ def _env_bool(name: str, default: bool = False) -> bool:
     if raw is None:
         return default
     return raw.strip().lower() in ('1', 'true', 'yes', 'on')
+
+
+def _railway_private_database_url(url: str) -> str:
+    """Evita DATABASE_URL com proxy público (*.proxy.rlwy.net) de dentro do Railway."""
+    if not url or '.proxy.rlwy.net' not in url:
+        return url
+    internal_host = (
+        os.environ.get('PGHOST', '').strip()
+        or os.environ.get('POSTGRES_HOST', '').strip()
+    )
+    if not internal_host:
+        host_guess = os.environ.get('HOST', '').strip()
+        if host_guess.endswith('.railway.internal'):
+            internal_host = host_guess
+    if not internal_host:
+        return url
+    parsed = urlparse(url)
+    if parsed.scheme not in ('postgres', 'postgresql'):
+        return url
+    user = parsed.username or ''
+    password = parsed.password or ''
+    auth = ''
+    if user:
+        auth = f'{quote(user, safe="")}:{quote(password, safe="")}@'
+    elif password:
+        auth = f':{quote(password, safe="")}@'
+    path = parsed.path or '/'
+    # Rede privada: sem sslmode=require (quebra com o hostname interno).
+    return urlunparse(('postgresql', f'{auth}{internal_host}:5432', path, '', '', ''))
 
 
 # Quick-start development settings - unsuitable for production
@@ -118,13 +148,27 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-_database_url = os.environ.get('DATABASE_URL', '').strip()
-_postgres_host = os.environ.get('POSTGRES_HOST', '').strip()
+_database_url = (
+    os.environ.get('DATABASE_PRIVATE_URL', '').strip()
+    or os.environ.get('DATABASE_URL', '').strip()
+)
+if _is_railway and _database_url:
+    _database_url = _railway_private_database_url(_database_url)
+
+_postgres_host = (
+    os.environ.get('POSTGRES_HOST', '').strip()
+    or os.environ.get('PGHOST', '').strip()
+)
+if not _postgres_host:
+    _host_guess = os.environ.get('HOST', '').strip()
+    if _host_guess.endswith('.railway.internal'):
+        _postgres_host = _host_guess
 
 if _database_url:
+    # parse() usa a string; config() lê antes os.environ['DATABASE_URL'] e ignora o rewrite.
     DATABASES = {
-        'default': dj_database_url.config(
-            default=_database_url,
+        'default': dj_database_url.parse(
+            _database_url,
             conn_max_age=600,
             conn_health_checks=True,
         ),
