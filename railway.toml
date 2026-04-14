@@ -5,6 +5,8 @@ buildCommand = "python manage.py collectstatic --noinput"
 
 [deploy]
 preDeployCommand = ["python manage.py migrate --noinput"]
-startCommand = "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --worker-class sync --timeout 120 --access-logfile - --error-logfile -"
+# Um bind em [::] costuma atender IPv4+IPv6 (dual-stack); dois binds quebram com EADDRINUSE.
+# Se o deploy falhar ao subir, troque por: --bind \"0.0.0.0:$PORT\"
+startCommand = "gunicorn config.wsgi:application --bind \"[::]:$PORT\" --forwarded-allow-ips=\"*\" --workers 1 --worker-class sync --timeout 120 --access-logfile - --error-logfile -"
 healthcheckPath = "/"
 healthcheckTimeout = 300

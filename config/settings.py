@@ -276,6 +276,9 @@ MEDIA_ROOT = BASE_DIR / 'media'
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    # Edge do Railway envia Host / porta / proto reais do cliente.
+    USE_X_FORWARDED_HOST = True
+    USE_X_FORWARDED_PORT = True
     # No Railway o healthcheck interno chama HTTP; redirect para HTTPS quebra o deploy (502).
     SECURE_SSL_REDIRECT = (not _is_railway) and _env_bool('SECURE_SSL_REDIRECT', default=True)
     SESSION_COOKIE_SECURE = True
