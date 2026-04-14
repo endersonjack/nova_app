@@ -17,9 +17,16 @@ Including another URLconf
 from django.conf import settings
 from django.conf.urls.static import static
 from django.contrib import admin
+from django.http import HttpResponse
 from django.urls import include, path
 
+
+def favicon_view(_request):
+    return HttpResponse(status=204)
+
+
 urlpatterns = [
+    path('favicon.ico', favicon_view),
     path('admin/', admin.site.urls),
     path('', include('usuarios.urls')),
     path('usuarios/', include('usuarios.urls')),

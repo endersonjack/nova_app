@@ -59,6 +59,15 @@ def _railway_private_database_url(url: str) -> str:
     return urlunparse(('postgresql', f'{auth}{internal_host}:5432', path, '', '', ''))
 
 
+def _apply_railway_internal_postgres_ssl(db: dict) -> None:
+    """Postgres privado do Railway em geral não usa TLS; 'require' quebra ou trava o cliente."""
+    host = db.get('HOST')
+    if not isinstance(host, str) or '.railway.internal' not in host:
+        return
+    mode = os.environ.get('POSTGRES_SSLMODE', '').strip() or 'disable'
+    db.setdefault('OPTIONS', {})['sslmode'] = mode
+
+
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
@@ -89,9 +98,9 @@ else:
 
 _csrf_origins = [o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 if _railway_host:
-    _https_origin = f'https://{_railway_host}'
-    if _https_origin not in _csrf_origins:
-        _csrf_origins.append(_https_origin)
+    for _o in (f'https://{_railway_host}', f'http://{_railway_host}'):
+        if _o not in _csrf_origins:
+            _csrf_origins.append(_o)
 CSRF_TRUSTED_ORIGINS = _csrf_origins
 
 
@@ -166,15 +175,21 @@ if not _postgres_host:
 
 if _database_url:
     # parse() usa a string; config() lê antes os.environ['DATABASE_URL'] e ignora o rewrite.
-    DATABASES = {
-        'default': dj_database_url.parse(
-            _database_url,
-            conn_max_age=600,
-            conn_health_checks=True,
-        ),
-    }
+    _db_default = dj_database_url.parse(
+        _database_url,
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
+    _apply_railway_internal_postgres_ssl(_db_default)
+    DATABASES = {'default': _db_default}
 elif _postgres_host:
-    _sslmode = os.environ.get('POSTGRES_SSLMODE', 'require').strip()
+    _sslmode = os.environ.get('POSTGRES_SSLMODE', '').strip()
+    if not _sslmode:
+        _sslmode = (
+            'disable'
+            if isinstance(_postgres_host, str) and '.railway.internal' in _postgres_host
+            else 'require'
+        )
     _pg_options = {'sslmode': _sslmode} if _sslmode else {}
     DATABASES = {
         'default': {
@@ -189,6 +204,7 @@ elif _postgres_host:
             **({'OPTIONS': _pg_options} if _pg_options else {}),
         }
     }
+    _apply_railway_internal_postgres_ssl(DATABASES['default'])
 else:
     DATABASES = {
         'default': {
