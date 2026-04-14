@@ -83,12 +83,10 @@ _railway_host = os.environ.get('RAILWAY_PUBLIC_DOMAIN', '').strip()
 if _railway_host and _railway_host not in _allowed:
     _allowed.append(_railway_host)
 
-_is_railway = bool(
-    os.environ.get('RAILWAY_ENVIRONMENT', '').strip()
-    or os.environ.get('RAILWAY', '').strip()
-)
+# Só existe no container em produção — `railway run` no laptop não define (evita tratar local como deploy).
+_deployed_on_railway = bool(os.environ.get('RAILWAY_DEPLOYMENT_ID', '').strip())
 
-if _is_railway:
+if _deployed_on_railway:
     # Healthcheck interno (RailwayHealthCheck) usa Host que não é o domínio público.
     ALLOWED_HOSTS = ['*']
 else:
@@ -161,7 +159,12 @@ _database_url = (
     os.environ.get('DATABASE_PRIVATE_URL', '').strip()
     or os.environ.get('DATABASE_URL', '').strip()
 )
-if _is_railway and _database_url:
+if not _deployed_on_railway and _database_url and '.railway.internal' in _database_url:
+    # No laptop, `postgres.railway.internal` não resolve; use a URL pública do plugin Postgres.
+    _pub = os.environ.get('DATABASE_PUBLIC_URL', '').strip()
+    if _pub:
+        _database_url = _pub
+elif _deployed_on_railway and _database_url:
     _database_url = _railway_private_database_url(_database_url)
 
 _postgres_host = (
@@ -280,6 +283,9 @@ if not DEBUG:
     USE_X_FORWARDED_HOST = True
     USE_X_FORWARDED_PORT = True
     # No Railway o healthcheck interno chama HTTP; redirect para HTTPS quebra o deploy (502).
-    SECURE_SSL_REDIRECT = (not _is_railway) and _env_bool('SECURE_SSL_REDIRECT', default=True)
+    SECURE_SSL_REDIRECT = (not _deployed_on_railway) and _env_bool(
+        'SECURE_SSL_REDIRECT',
+        default=True,
+    )
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
