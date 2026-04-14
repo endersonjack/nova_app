@@ -48,16 +48,14 @@ _is_railway = bool(
     os.environ.get('RAILWAY_ENVIRONMENT', '').strip()
     or os.environ.get('RAILWAY', '').strip()
 )
-# Só desenvolvimento local; nunca basta para o hostname público do Railway.
-_local_only_hosts = frozenset({'localhost', '127.0.0.1'})
 
-if not _allowed:
-    _allowed = ['*'] if _is_railway else ['localhost', '127.0.0.1']
-elif _is_railway and _allowed and frozenset(_allowed) <= _local_only_hosts:
-    # Ex.: ALLOWED_HOSTS copiado do .env local para o painel — quebra o site na nuvem.
-    _allowed = ['*']
-
-ALLOWED_HOSTS = list(dict.fromkeys(_allowed))
+if _is_railway:
+    # Healthcheck interno (RailwayHealthCheck) usa Host que não é o domínio público.
+    ALLOWED_HOSTS = ['*']
+else:
+    if not _allowed:
+        _allowed = ['localhost', '127.0.0.1']
+    ALLOWED_HOSTS = list(dict.fromkeys(_allowed))
 
 _csrf_origins = [o.strip() for o in os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if o.strip()]
 if _railway_host:

@@ -1,8 +1,10 @@
 [build]
 builder = "RAILPACK"
+# Coloca staticfiles/ na imagem (evita aviso do WhiteNoise e 404 de estáticos).
+buildCommand = "python manage.py collectstatic --noinput"
 
 [deploy]
-releaseCommand = "python manage.py migrate --noinput && python manage.py collectstatic --noinput"
+preDeployCommand = ["python", "manage.py", "migrate", "--noinput"]
 startCommand = "gunicorn config.wsgi:application --bind 0.0.0.0:$PORT --workers 1 --threads 4 --timeout 120 --access-logfile - --error-logfile -"
 healthcheckPath = "/"
 healthcheckTimeout = 300
