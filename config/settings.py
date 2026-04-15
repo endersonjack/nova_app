@@ -275,7 +275,11 @@ else:
     }
 
 MEDIA_URL = 'media/'
-MEDIA_ROOT = BASE_DIR / 'media'
+_media_root_env = os.environ.get('MEDIA_ROOT', '').strip()
+MEDIA_ROOT = Path(_media_root_env).resolve() if _media_root_env else BASE_DIR / 'media'
+
+# Em produção o Django não registra /media/ por padrão; no Railway não há nginx servindo MEDIA_ROOT.
+SERVE_MEDIA = DEBUG or _deployed_on_railway
 
 if not DEBUG:
     SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
