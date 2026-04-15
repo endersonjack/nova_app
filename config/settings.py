@@ -274,7 +274,7 @@ else:
         },
     }
 
-MEDIA_URL = 'media/'
+MEDIA_URL = '/media/'
 _media_root_env = os.environ.get('MEDIA_ROOT', '').strip()
 MEDIA_ROOT = Path(_media_root_env).resolve() if _media_root_env else BASE_DIR / 'media'
 
