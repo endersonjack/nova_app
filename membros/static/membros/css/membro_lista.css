@@ -1,3 +1,7 @@
+.membro-lista-sort-link:hover {
+  color: var(--bs-primary) !important;
+}
+
 .membro-lista-row {
   cursor: pointer;
 }

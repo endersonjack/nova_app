@@ -36,7 +36,7 @@ def _widget_classes_membro_public(form, exclude=('filhos',)):
         w = field.widget
         if name == 'batizado':
             w.attrs.setdefault('class', 'form-check-input')
-        elif name in ('sexo', 'locomocao', 'estado_civil'):
+        elif name in ('sexo', 'locomocao', 'tamanho_camisa', 'estado_civil'):
             w.attrs.setdefault('class', 'form-select rounded-3')
         elif name == 'casado_com':
             w.attrs.setdefault('class', 'form-select rounded-3')
@@ -454,13 +454,17 @@ class MembroBatismoForm(forms.ModelForm):
 class MembroInformacoesForm(forms.ModelForm):
     class Meta:
         model = Membro
-        fields = ('locomocao', 'observacoes')
+        fields = ('locomocao', 'tamanho_camisa', 'observacoes')
         widgets = {
             'observacoes': Textarea(attrs={'rows': 4, 'class': 'form-control rounded-3'}),
         }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
+        for name in ('locomocao', 'tamanho_camisa'):
+            f = self.fields.get(name)
+            if f is not None:
+                f.queryset = f.queryset.order_by('descricao')
         _widget_classes_membro_public(self)
 
 

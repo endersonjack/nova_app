@@ -111,13 +111,32 @@ class EstadoCivil(models.TextChoices):
 ESTADOS_COM_CONJUGE = frozenset((EstadoCivil.CASADO,))
 
 
-class Locomocao(models.TextChoices):
-    PE = 'pe', _('A pé')
-    CARRO = 'carro', _('Carro')
-    MOTO = 'moto', _('Moto')
-    BICICLETA = 'bicicleta', _('Bicicleta')
-    APPS = 'apps', _('Apps')
-    OUTRO = 'outro', _('Outro')
+class Locomocao(models.Model):
+    """Cadastro de opções de locomoção (somente via Admin)."""
+
+    descricao = models.CharField(_('Descrição'), max_length=120, unique=True)
+
+    class Meta:
+        verbose_name = _('Locomoção')
+        verbose_name_plural = _('Locomoções')
+        ordering = ['descricao']
+
+    def __str__(self) -> str:
+        return self.descricao
+
+
+class TamanhoCamisa(models.Model):
+    """Cadastro de tamanhos de camisa (somente via Admin)."""
+
+    descricao = models.CharField(_('Descrição'), max_length=120, unique=True)
+
+    class Meta:
+        verbose_name = _('Tamanho da camisa')
+        verbose_name_plural = _('Tamanhos de camisa')
+        ordering = ['descricao']
+
+    def __str__(self) -> str:
+        return self.descricao
 
 
 class Membro(models.Model):
@@ -194,11 +213,21 @@ class Membro(models.Model):
     batizado = models.BooleanField(_('É batizado(a)?'), default=False)
     data_batismo = models.DateField(_('Data de batismo'), null=True, blank=True)
 
-    locomocao = models.CharField(
-        _('Locomoção'),
-        max_length=20,
-        choices=Locomocao.choices,
+    locomocao = models.ForeignKey(
+        Locomocao,
+        verbose_name=_('Locomoção'),
+        on_delete=models.SET_NULL,
+        null=True,
         blank=True,
+        related_name='membros',
+    )
+    tamanho_camisa = models.ForeignKey(
+        TamanhoCamisa,
+        verbose_name=_('Tamanho da camisa'),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='membros',
     )
     observacoes = models.TextField(_('Observações'), blank=True)
 

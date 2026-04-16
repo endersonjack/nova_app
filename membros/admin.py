@@ -4,7 +4,19 @@ from django.urls import reverse
 from django.utils.html import format_html
 
 from .forms import MembroAdminForm
-from .models import Membro
+from .models import Locomocao, Membro, TamanhoCamisa
+
+
+@admin.register(Locomocao)
+class LocomocaoAdmin(admin.ModelAdmin):
+    list_display = ('descricao',)
+    search_fields = ('descricao',)
+
+
+@admin.register(TamanhoCamisa)
+class TamanhoCamisaAdmin(admin.ModelAdmin):
+    list_display = ('descricao',)
+    search_fields = ('descricao',)
 
 
 @admin.register(Membro)
@@ -18,9 +30,9 @@ class MembroAdmin(admin.ModelAdmin):
         'telefone_formatado_list',
         'batizado',
     )
-    list_filter = ('sexo', 'estado_civil', 'batizado', 'locomocao')
+    list_filter = ('sexo', 'estado_civil', 'batizado', 'locomocao', 'tamanho_camisa')
     search_fields = ('nome_completo', 'nome_conhecido', 'email', 'cpf', 'telefone')
-    autocomplete_fields = ('casado_com', 'pai', 'mae')
+    autocomplete_fields = ('casado_com', 'pai', 'mae', 'locomocao', 'tamanho_camisa')
     filter_horizontal = ('filhos',)
     readonly_fields = (
         'cpf_formatado_readonly',
@@ -74,7 +86,7 @@ class MembroAdmin(admin.ModelAdmin):
         ),
         (
             'Informações',
-            {'fields': ('locomocao', 'observacoes')},
+            {'fields': ('locomocao', 'tamanho_camisa', 'observacoes')},
         ),
         (
             'Ministérios',

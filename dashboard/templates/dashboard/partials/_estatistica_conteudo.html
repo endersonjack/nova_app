@@ -1,0 +1,65 @@
+<div class="row g-4 align-items-stretch">
+  <div class="col-sm-6 col-lg-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6 fw-bold text-dark mb-3">Membros por sexo</h2>
+        {% if total_membros %}
+          <div class="dashboard-pie-wrap mx-auto" style="max-width: 280px;">
+            <canvas id="dashboardChartSexo"
+                    width="280"
+                    height="280"
+                    data-membros-m="{{ membros_masculino }}"
+                    data-membros-f="{{ membros_feminino }}"
+                    aria-label="Gráfico de pizza: masculino e feminino"></canvas>
+          </div>
+        {% else %}
+          <p class="text-muted mb-0 py-4 text-center">Nenhum membro cadastrado.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-6 col-lg-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6 fw-bold text-dark mb-3">Por faixa etária</h2>
+        {% if total_membros %}
+          {% if idade_chart_payload.labels %}
+            {{ idade_chart_payload|json_script:"dashboard-idade-data" }}
+            <div class="dashboard-pie-wrap mx-auto" style="max-width: 280px;">
+              <canvas id="dashboardChartIdade"
+                      width="280"
+                      height="280"
+                      aria-label="Gráfico de pizza: faixas etárias"></canvas>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0 py-4 text-center">Sem dados para o gráfico.</p>
+          {% endif %}
+        {% else %}
+          <p class="text-muted mb-0 py-4 text-center">Nenhum membro cadastrado.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+  <div class="col-sm-12 col-lg-4">
+    <div class="card border-0 shadow-sm h-100">
+      <div class="card-body">
+        <h2 class="h6 fw-bold text-dark mb-3">Locomoção</h2>
+        {% if total_membros %}
+          {% if locomocao_chart_payload.labels %}
+            {{ locomocao_chart_payload|json_script:"dashboard-locomocao-data" }}
+            <div class="dashboard-pie-wrap mx-auto" style="max-width: 280px;">
+              <canvas id="dashboardChartLocomocao"
+                      width="280"
+                      height="280"
+                      aria-label="Gráfico de pizza: locomoção"></canvas>
+            </div>
+          {% else %}
+            <p class="text-muted mb-0 py-4 text-center">Sem dados para o gráfico.</p>
+          {% endif %}
+        {% else %}
+          <p class="text-muted mb-0 py-4 text-center">Nenhum membro cadastrado.</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>

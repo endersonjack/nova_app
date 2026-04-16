@@ -19,6 +19,13 @@
           {% for err in form.locomocao.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
         </div>
       </div>
+      <div class="col-md-6">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.tamanho_camisa.id_for_label }}">{{ form.tamanho_camisa.label }}</label>
+          {{ form.tamanho_camisa }}
+          {% for err in form.tamanho_camisa.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
       <div class="col-12">
         <div class="membro-field-shell border rounded-3 px-3 py-2">
           <label class="membro-field-label" for="{{ form.observacoes.id_for_label }}">{{ form.observacoes.label }}</label>

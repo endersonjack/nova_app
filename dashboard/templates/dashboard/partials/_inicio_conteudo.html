@@ -1,5 +1,5 @@
 <div class="row g-4 align-items-stretch">
-  <div class="col-sm-6 col-lg-4">
+  <div class="col-md-6 col-lg-5">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body d-flex flex-column justify-content-center py-4">
         <div class="text-muted small mb-1 text-uppercase fw-semibold" style="letter-spacing: 0.04em;">Membros</div>
@@ -8,43 +8,27 @@
       </div>
     </div>
   </div>
-  <div class="col-sm-6 col-lg-4">
+  <div class="col-md-6 col-lg-7">
     <div class="card border-0 shadow-sm h-100">
-      <div class="card-body">
-        <h2 class="h6 fw-bold text-dark mb-3">Membros por sexo</h2>
-        {% if total_membros %}
-          <div class="dashboard-pie-wrap mx-auto" style="max-width: 280px;">
-            <canvas id="dashboardChartSexo"
-                    width="280"
-                    height="280"
-                    data-membros-m="{{ membros_masculino }}"
-                    data-membros-f="{{ membros_feminino }}"
-                    aria-label="Gráfico de pizza: masculino e feminino"></canvas>
-          </div>
+      <div class="card-body d-flex flex-column">
+        <h2 class="h6 fw-bold text-dark mb-1">Aniversariantes do mês</h2>
+        <p class="text-muted small mb-3">{{ mes_label|capfirst }}</p>
+        {% if aniversariantes %}
+          <ul class="list-group list-group-flush rounded-3 border small mb-0">
+            {% for m in aniversariantes %}
+              <li class="list-group-item position-relative d-flex align-items-center justify-content-between gap-2 px-3 py-2">
+                <span class="text-muted flex-shrink-0" style="min-width: 2.5rem;">{{ m.data_nascimento|date:"d/m" }}</span>
+                <span class="fw-medium text-dark text-truncate">
+                  {% if m.nome_conhecido %}{{ m.nome_conhecido }}{% else %}{{ m.nome_completo }}{% endif %}
+                </span>
+                <a href="{% url 'membros:detalhe' m.pk %}"
+                   class="stretched-link"
+                   aria-label="Ver perfil"></a>
+              </li>
+            {% endfor %}
+          </ul>
         {% else %}
-          <p class="text-muted mb-0 py-4 text-center">Nenhum membro cadastrado.</p>
-        {% endif %}
-      </div>
-    </div>
-  </div>
-  <div class="col-sm-6 col-lg-4">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body">
-        <h2 class="h6 fw-bold text-dark mb-3">Por faixa etária</h2>
-        {% if total_membros %}
-          {% if idade_chart_payload.labels %}
-            {{ idade_chart_payload|json_script:"dashboard-idade-data" }}
-            <div class="dashboard-pie-wrap mx-auto" style="max-width: 280px;">
-              <canvas id="dashboardChartIdade"
-                      width="280"
-                      height="280"
-                      aria-label="Gráfico de pizza: faixas etárias"></canvas>
-            </div>
-          {% else %}
-            <p class="text-muted mb-0 py-4 text-center">Sem dados para o gráfico.</p>
-          {% endif %}
-        {% else %}
-          <p class="text-muted mb-0 py-4 text-center">Nenhum membro cadastrado.</p>
+          <p class="text-muted small mb-0 py-3 text-center">Nenhum aniversariante neste mês com data cadastrada.</p>
         {% endif %}
       </div>
     </div>

@@ -27,6 +27,7 @@
     <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
   </span>
   <div id="membro-lista-wrap"
+       data-lista-url="{% url 'membros:lista_partial' %}"
        hx-get="{% url 'membros:lista_partial' %}"
        hx-trigger="load, refresh from:body"
        hx-swap="innerHTML"

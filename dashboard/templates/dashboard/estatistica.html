@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Estatística{% endblock %}
+{% block page_title %}Estatística{% endblock %}
+
+{% block content %}
+<div class="position-relative">
+  <span id="dashboard-estatistica-ind"
+        class="htmx-indicator position-absolute top-0 end-0 mt-n1 me-1 spinner-border spinner-border-sm text-primary z-1"
+        role="status"
+        aria-hidden="true"></span>
+  <div id="dashboard-estatistica-wrap"
+       hx-get="{% url 'dashboard_estatistica_conteudo' %}"
+       hx-trigger="load"
+       hx-swap="innerHTML"
+       hx-indicator="#dashboard-estatistica-ind">
+    {% include "dashboard/partials/_estatistica_skeleton.html" %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <script src="{% static 'js/dashboard-estatisticas.js' %}"></script>
+{% endblock %}

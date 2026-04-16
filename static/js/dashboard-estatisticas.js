@@ -50,6 +50,61 @@
     }, 100);
   }
 
+  function mountPieLocomocao() {
+    var el = document.getElementById('dashboardChartLocomocao');
+    if (!el || !window.Chart) return;
+    destroyIfAny(el);
+    var scriptEl = document.getElementById('dashboard-locomocao-data');
+    if (!scriptEl) return;
+    var payload;
+    try {
+      payload = JSON.parse(scriptEl.textContent);
+    } catch (e) {
+      return;
+    }
+    if (
+      !payload ||
+      !payload.labels ||
+      !payload.counts ||
+      !payload.colors ||
+      payload.labels.length === 0
+    ) {
+      return;
+    }
+    el._novaChart = new Chart(el, {
+      type: 'pie',
+      data: {
+        labels: payload.labels,
+        datasets: [
+          {
+            data: payload.counts,
+            backgroundColor: payload.colors,
+            borderWidth: 2,
+            borderColor: '#ffffff',
+          },
+        ],
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: true,
+        plugins: {
+          legend: {
+            position: 'bottom',
+            labels: {
+              usePointStyle: true,
+              padding: 10,
+              font: { size: 11 },
+              boxWidth: 10,
+            },
+          },
+        },
+      },
+    });
+    window.setTimeout(function () {
+      if (el._novaChart) el._novaChart.resize();
+    }, 100);
+  }
+
   function mountPieIdade() {
     var el = document.getElementById('dashboardChartIdade');
     if (!el || !window.Chart) return;
@@ -109,23 +164,25 @@
     window.requestAnimationFrame(function () {
       mountPieSexo();
       mountPieIdade();
+      mountPieLocomocao();
     });
   }
 
   document.body.addEventListener('htmx:afterSwap', function (evt) {
     var t = evt.detail && evt.detail.target;
-    if (!t || t.id !== 'dashboard-inicio-wrap') return;
+    if (!t || t.id !== 'dashboard-estatistica-wrap') return;
     scheduleMount();
   });
 
   window.setTimeout(function () {
     if (
       document.getElementById('dashboardChartSexo') ||
-      document.getElementById('dashboardChartIdade')
+      document.getElementById('dashboardChartIdade') ||
+      document.getElementById('dashboardChartLocomocao')
     ) {
       scheduleMount();
     }
   }, 0);
 
-  window.mountDashboardInicioPie = scheduleMount;
+  window.mountDashboardEstatisticaCharts = scheduleMount;
 })();

@@ -1,8 +1,10 @@
 import json
+from urllib.parse import urlencode
 
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
-from django.db.models import Q
+from django.core.paginator import Paginator
+from django.db.models import F, Q
 from django.http import Http404, HttpResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
@@ -20,6 +22,35 @@ from .forms import (
     MembroNovoForm,
 )
 from .models import EstadoCivil, Membro
+
+LISTA_PER_PAGE = 30
+LISTA_SORT_FIELDS = {
+    'nome': 'nome_completo',
+    'telefone': 'telefone',
+    'nascimento': 'data_nascimento',
+    'email': 'email',
+}
+
+
+def _lista_encode_params(*, q='', sort='nome', dir='asc', page=1) -> str:
+    parts = []
+    if q:
+        parts.append(('q', q))
+    parts.extend(
+        [
+            ('sort', sort),
+            ('dir', dir),
+            ('page', str(page)),
+        ]
+    )
+    return urlencode(parts)
+
+
+def _lista_next_sort_dir(current_sort: str, current_dir: str, column: str) -> str:
+    if current_sort == column:
+        return 'desc' if current_dir == 'asc' else 'asc'
+    return 'asc'
+
 
 SECAO_CONFIG = {
     'dados-pessoais': {
@@ -65,7 +96,13 @@ MODAL_SECAO_SHELL = 'membros/partials/detalhe/_modal_secao_editar.html'
 
 def _membro_queryset():
     return (
-        Membro.objects.select_related('casado_com', 'pai', 'mae')
+        Membro.objects.select_related(
+            'casado_com',
+            'pai',
+            'mae',
+            'locomocao',
+            'tamanho_camisa',
+        )
         .prefetch_related('filhos')
     )
 
@@ -180,12 +217,87 @@ def mapa_membros(request):
 @login_required
 @require_http_methods(['GET'])
 def lista_partial(request):
-    membros = Membro.objects.select_related('casado_com').order_by('nome_completo')
-    return render(
-        request,
-        'membros/partials/_lista.html',
-        {'membros': membros},
+    q = (request.GET.get('q') or '').strip()
+    sort = (request.GET.get('sort') or 'nome').strip()
+    if sort not in LISTA_SORT_FIELDS:
+        sort = 'nome'
+    dir_ = (request.GET.get('dir') or 'asc').strip()
+    if dir_ not in ('asc', 'desc'):
+        dir_ = 'asc'
+
+    qs = Membro.objects.select_related('casado_com')
+    if q:
+        qs = qs.filter(
+            Q(nome_completo__icontains=q) | Q(nome_conhecido__icontains=q),
+        )
+
+    order_field = LISTA_SORT_FIELDS[sort]
+    if order_field == 'data_nascimento':
+        if dir_ == 'desc':
+            qs = qs.order_by(F('data_nascimento').desc(nulls_last=True))
+        else:
+            qs = qs.order_by(F('data_nascimento').asc(nulls_last=True))
+    else:
+        prefix = '-' if dir_ == 'desc' else ''
+        qs = qs.order_by(f'{prefix}{order_field}', 'pk')
+
+    paginator = Paginator(qs, LISTA_PER_PAGE)
+    page_obj = paginator.get_page(request.GET.get('page'))
+
+    list_query_string = _lista_encode_params(
+        q=q,
+        sort=sort,
+        dir=dir_,
+        page=page_obj.number,
     )
+
+    def enc(page_num: int) -> str:
+        return _lista_encode_params(q=q, sort=sort, dir=dir_, page=page_num)
+
+    link_sort_nome = _lista_encode_params(
+        q=q,
+        sort='nome',
+        dir=_lista_next_sort_dir(sort, dir_, 'nome'),
+        page=1,
+    )
+    link_sort_telefone = _lista_encode_params(
+        q=q,
+        sort='telefone',
+        dir=_lista_next_sort_dir(sort, dir_, 'telefone'),
+        page=1,
+    )
+    link_sort_nascimento = _lista_encode_params(
+        q=q,
+        sort='nascimento',
+        dir=_lista_next_sort_dir(sort, dir_, 'nascimento'),
+        page=1,
+    )
+    link_sort_email = _lista_encode_params(
+        q=q,
+        sort='email',
+        dir=_lista_next_sort_dir(sort, dir_, 'email'),
+        page=1,
+    )
+
+    ctx = {
+        'membros': page_obj.object_list,
+        'page_obj': page_obj,
+        'q': q,
+        'sort': sort,
+        'dir': dir_,
+        'list_query_string': list_query_string,
+        'link_sort_nome': link_sort_nome,
+        'link_sort_telefone': link_sort_telefone,
+        'link_sort_nascimento': link_sort_nascimento,
+        'link_sort_email': link_sort_email,
+        'link_page_prev': enc(page_obj.previous_page_number())
+        if page_obj.has_previous()
+        else '',
+        'link_page_next': enc(page_obj.next_page_number())
+        if page_obj.has_next()
+        else '',
+    }
+    return render(request, 'membros/partials/_lista.html', ctx)
 
 
 @login_required

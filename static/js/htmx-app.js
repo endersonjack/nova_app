@@ -48,6 +48,14 @@
         window.bootstrap.Modal.getOrCreateInstance(el).show();
       }
     }
+    if (t && t.id === 'membro-lista-wrap') {
+      var base = t.getAttribute('data-lista-url');
+      if (base) {
+        var root = t.querySelector('.membro-lista-root');
+        var qs = root && root.getAttribute('data-list-query');
+        t.setAttribute('hx-get', qs ? base + '?' + qs : base);
+      }
+    }
   });
 
   var appModalEl = document.getElementById('appModal');
