@@ -15,10 +15,10 @@ Including another URLconf
     2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
 """
 from django.conf import settings
-from django.conf.urls.static import static
 from django.contrib import admin
 from django.http import HttpResponse
-from django.urls import include, path
+from django.urls import include, path, re_path
+from django.views.static import serve
 
 
 def favicon_view(_request):
@@ -34,5 +34,15 @@ urlpatterns = [
     path('membros/', include('membros.urls')),
 ]
 
+# `static()` do Django só registra URLs quando DEBUG=True; em produção retorna [].
 if getattr(settings, 'SERVE_MEDIA', settings.DEBUG):
-    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
+    _mu = settings.MEDIA_URL.lstrip('/')
+    if _mu and not _mu.endswith('/'):
+        _mu = f'{_mu}/'
+    urlpatterns += [
+        re_path(
+            r'^%s(?P<path>.*)$' % re.escape(_mu),
+            serve,
+            {'document_root': settings.MEDIA_ROOT},
+        ),
+    ]
