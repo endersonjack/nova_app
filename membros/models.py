@@ -1,10 +1,97 @@
 import re
-from typing import Optional
+from decimal import Decimal
+from html import escape, unescape
+from typing import Optional, Tuple
 
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
 from .validators import validate_cpf_digits
+
+
+def _coord_text_to_decimal(fragment: str) -> Decimal:
+    """Converte trecho numérico de coordenada (ponto ou vírgula decimal) em Decimal."""
+    t = (fragment or '').strip()
+    if not t:
+        raise ValueError
+    if '.' in t:
+        t = t.replace(',', '')
+    else:
+        t = t.replace(',', '.')
+    return Decimal(t)
+
+
+def extract_maps_src_from_input(raw: str) -> str:
+    """Obtém a URL do mapa a partir de um link solto ou do atributo src de um iframe."""
+    text = (raw or '').strip()
+    if not text:
+        return ''
+    m = re.search(r'src\s*=\s*["\']([^"\']+)["\']', text, re.I)
+    if m:
+        return m.group(1).strip()
+    return text
+
+
+def _maps_src_allowed(src: str) -> bool:
+    s = (src or '').strip()
+    if not s.startswith('https://'):
+        return False
+    low = s.lower()
+    if 'javascript:' in low or '<' in s:
+        return False
+    return 'google.com/maps' in low or 'maps.google.com' in low
+
+
+def normalize_maps_embed_for_storage(raw: str) -> str:
+    """
+    Gera um iframe compacto do Google Maps a partir de URL ou HTML colado.
+    Retorna string vazia se a origem não for uma URL de embed permitida.
+    """
+    src = extract_maps_src_from_input(raw)
+    if not src or not _maps_src_allowed(src):
+        return ''
+    esc = escape(src, quote=True)
+    return (
+        '<iframe class="membro-maps-iframe" src="{}" width="480" height="280" '
+        'style="border:0;max-width:100%;" loading="lazy" '
+        'referrerpolicy="no-referrer-when-downgrade" allowfullscreen></iframe>'
+    ).format(esc)
+
+
+def parse_lat_lng_from_maps_url(raw: str) -> Optional[Tuple[Decimal, Decimal]]:
+    """Extrai latitude e longitude de URLs comuns do Google Maps / embed."""
+    if not raw or not str(raw).strip():
+        return None
+    text = str(raw).strip()
+    m_iframe = re.search(r'src\s*=\s*["\']([^"\']+)["\']', text, re.I)
+    url = unescape((m_iframe.group(1) if m_iframe else text).strip())
+    # @lat,lng (zoom opcional)
+    num = r'-?[\d]+(?:[.,][\d]+)?'
+    m = re.search(rf'@({num}),({num})', url)
+    if m:
+        return _coord_text_to_decimal(m.group(1)), _coord_text_to_decimal(m.group(2))
+    # ?q=lat,lng ou &q=lat,lng
+    m = re.search(rf'[?&]q=({num}),({num})', url, re.I)
+    if m:
+        return _coord_text_to_decimal(m.group(1)), _coord_text_to_decimal(m.group(2))
+    # ll=lat,lng
+    m = re.search(rf'[?&]ll=({num}),({num})', url, re.I)
+    if m:
+        return _coord_text_to_decimal(m.group(1)), _coord_text_to_decimal(m.group(2))
+    # maps/embed?pb=… !2dLNG!3dLAT
+    m = re.search(rf'!2d({num})!3d({num})', url)
+    if m:
+        lng, lat = m.group(1), m.group(2)
+        return _coord_text_to_decimal(lat), _coord_text_to_decimal(lng)
+    # !3dLAT!2dLNG (variação)
+    m = re.search(rf'!3d({num})!2d({num})', url)
+    if m:
+        return _coord_text_to_decimal(m.group(1)), _coord_text_to_decimal(m.group(2))
+    # !3dlat!4dlng (place / embed)
+    m = re.search(rf'!3d({num})!4d({num})', url)
+    if m:
+        return _coord_text_to_decimal(m.group(1)), _coord_text_to_decimal(m.group(2))
+    return None
 
 
 class Sexo(models.TextChoices):
@@ -17,17 +104,11 @@ class EstadoCivil(models.TextChoices):
     CASADO = 'casado', _('Casado(a)')
     DIVORCIADO = 'divorciado', _('Divorciado(a)')
     VIUVO = 'viuvo', _('Viúvo(a)')
-    UNIAO_ESTAVEL = 'uniao_estavel', _('União estável')
     SEPARADO = 'separado', _('Separado(a)')
     OUTRO = 'outro', _('Outro')
 
 
-ESTADOS_COM_CONJUGE = frozenset(
-    (
-        EstadoCivil.CASADO,
-        EstadoCivil.UNIAO_ESTAVEL,
-    )
-)
+ESTADOS_COM_CONJUGE = frozenset((EstadoCivil.CASADO,))
 
 
 class Locomocao(models.TextChoices):
@@ -105,15 +186,65 @@ class Membro(models.Model):
 
     foto = models.ImageField(_('Foto'), upload_to='membros/fotos/', blank=True, null=True)
 
+    maps_embed = models.TextField(
+        _('Mapa (embed)'),
+        blank=True,
+        help_text=_(
+            'Cole o link ou o iframe do Google Maps. Ao salvar, o valor vira um '
+            'iframe compacto e as coordenadas são preenchidas quando o link '
+            'as contiver.'
+        ),
+    )
+    latitude = models.DecimalField(
+        _('Latitude'),
+        max_digits=10,
+        decimal_places=7,
+        null=True,
+        blank=True,
+    )
+    longitude = models.DecimalField(
+        _('Longitude'),
+        max_digits=10,
+        decimal_places=7,
+        null=True,
+        blank=True,
+    )
+
     class Meta:
         verbose_name = _('Membro')
         verbose_name_plural = _('Membros')
         ordering = ['nome_completo']
 
     def __str__(self) -> str:
-        return self.nome_conhecido.strip() if self.nome_conhecido else self.nome_completo
+        return (self.nome_completo or '').strip() or '—'
+
+    def _sync_maps_coordinates(self) -> None:
+        raw = (self.maps_embed or '').strip()
+        if not raw:
+            self.latitude = None
+            self.longitude = None
+            return
+        normalized = normalize_maps_embed_for_storage(raw)
+        self.maps_embed = normalized
+        if not normalized:
+            self.latitude = None
+            self.longitude = None
+            return
+        parsed = parse_lat_lng_from_maps_url(normalized)
+        if parsed:
+            self.latitude, self.longitude = parsed[0], parsed[1]
+        else:
+            self.latitude = None
+            self.longitude = None
 
     def save(self, *args, **kwargs):
+        update_fields = kwargs.get('update_fields')
+        if update_fields is None or 'maps_embed' in update_fields:
+            self._sync_maps_coordinates()
+            if update_fields is not None:
+                kwargs['update_fields'] = list(
+                    frozenset(update_fields) | {'latitude', 'longitude'},
+                )
         update_fields = kwargs.get('update_fields')
         spouse_fields_dirty = update_fields is None or any(
             name in update_fields

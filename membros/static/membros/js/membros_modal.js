@@ -1,8 +1,4 @@
 (function () {
-  function clearHost(host) {
-    if (host) host.innerHTML = '';
-  }
-
   function updateFilhoCancelState() {
     var container = document.getElementById('filhos-rows-container');
     var cancel = document.getElementById('js-filho-cancel');
@@ -11,41 +7,109 @@
     cancel.disabled = n <= 1;
   }
 
+  function familiaConjugeSync(est, wrap) {
+    if (!est || !wrap) return;
+    var conj = wrap.querySelector('.js-familia-casado-com-select');
+    var dateInput = document.getElementById('id_data_casamento');
+    if (!conj || !dateInput) return;
+    var ok = est.value === 'casado';
+    var shells = wrap.querySelectorAll('.membro-field-shell');
+    var shellCasado = shells[0];
+    var shellDate = shells[1];
+    if (ok) {
+      dateInput.removeAttribute('readonly');
+      dateInput.classList.remove('bg-light', 'text-muted');
+      if (shellCasado) shellCasado.classList.remove('bg-light', 'bg-opacity-50');
+      if (shellDate) shellDate.classList.remove('bg-light', 'bg-opacity-50');
+      conj.disabled = false;
+    } else {
+      conj.value = '';
+      conj.disabled = true;
+      dateInput.value = '';
+      dateInput.setAttribute('readonly', 'readonly');
+      dateInput.classList.add('bg-light', 'text-muted');
+      if (shellCasado) shellCasado.classList.add('bg-light', 'bg-opacity-50');
+      if (shellDate) shellDate.classList.add('bg-light', 'bg-opacity-50');
+    }
+  }
+
+  function familiaConjugeBind(root) {
+    var est = root.querySelector('#id_estado_civil');
+    var wrap = root.querySelector('#js-familia-conjuge-fields');
+    var form = root.querySelector('form.membro-secao-form');
+    if (!est || !wrap) return;
+    var initial = true;
+    function onChange() {
+      var prev = est.getAttribute('data-prev-estado');
+      var v = est.value;
+      familiaConjugeSync(est, wrap);
+      var cb = form && form.querySelector('#id_adicionar_filhos_conjuge');
+      if (cb) {
+        if (v === 'casado') {
+          cb.disabled = false;
+          if (!initial && prev != 'casado') {
+            cb.checked = true;
+          }
+        } else {
+          cb.checked = false;
+          cb.disabled = true;
+        }
+      }
+      est.setAttribute('data-prev-estado', v);
+      initial = false;
+    }
+    if (est._conjugeFamiliaChange) {
+      est.removeEventListener('change', est._conjugeFamiliaChange);
+    }
+    est._conjugeFamiliaChange = onChange;
+    est.addEventListener('change', onChange);
+    onChange();
+  }
+
+  function scheduleFamiliaConjugeBind(root) {
+    if (!root || !root.querySelector('#js-familia-conjuge-fields')) return;
+    var modal = document.getElementById('appModal');
+    function run() {
+      familiaConjugeBind(root);
+    }
+    if (modal && modal.classList.contains('show')) {
+      window.setTimeout(run, 50);
+    } else if (modal) {
+      function onShown() {
+        modal.removeEventListener('shown.bs.modal', onShown);
+        window.setTimeout(run, 50);
+      }
+      modal.addEventListener('shown.bs.modal', onShown);
+    } else {
+      window.setTimeout(run, 0);
+    }
+  }
+
+  document.body.addEventListener('htmx:configRequest', function (evt) {
+    var form = evt.detail && evt.detail.elt;
+    if (!form || !form.classList || !form.classList.contains('membro-secao-form'))
+      return;
+    var est = form.querySelector('#id_estado_civil');
+    var conj = form.querySelector('.js-familia-casado-com-select');
+    if (!est || !conj) return;
+    if (est.value === 'casado') {
+      conj.disabled = false;
+    }
+    var filhosCb = form.querySelector('#id_adicionar_filhos_conjuge');
+    if (filhosCb && est.value === 'casado') {
+      filhosCb.disabled = false;
+    }
+  });
+
   document.body.addEventListener('htmx:afterSwap', function (evt) {
     var t = evt.detail && evt.detail.target;
-    if (t && (t.id === 'app-modal-content' || t.id === 'membro-detalhe-main'))
+    if (!t) return;
+    if (t.id === 'app-modal-content' || t.id === 'membro-detalhe-main')
       updateFilhoCancelState();
+    if (t.id === 'app-modal-content') scheduleFamiliaConjugeBind(t);
   });
 
   document.body.addEventListener('click', function (e) {
-    var pick = e.target.closest('.js-autocomplete-pick');
-    if (pick) {
-      e.preventDefault();
-      var id = pick.getAttribute('data-membro-id');
-      var label = pick.getAttribute('data-membro-label') || '';
-      var host = pick.closest('.js-autocomplete-host');
-      if (!host) return;
-
-      if (host.id === 'casado_com_results') {
-        var hid = document.getElementById('id_casado_com');
-        var inp = document.getElementById('casado_com_search');
-        if (hid) hid.value = id;
-        if (inp) inp.value = label;
-        clearHost(host);
-        return;
-      }
-
-      var row = pick.closest('.js-filho-row');
-      if (row) {
-        var hidden = row.querySelector('.js-filho-hidden');
-        var search = row.querySelector('.js-filho-search');
-        if (hidden) hidden.value = id;
-        if (search) search.value = label;
-        clearHost(host);
-      }
-      return;
-    }
-
     var cancel = e.target.closest('#js-filho-cancel');
     if (cancel) {
       e.preventDefault();
@@ -70,30 +134,12 @@
     var clone = last.cloneNode(true);
     clone.setAttribute('data-idx', String(idx));
 
-    var hid = clone.querySelector('.js-filho-hidden');
-    var search = clone.querySelector('.js-filho-search');
-    var res = clone.querySelector('.js-autocomplete-host');
-    if (hid) {
-      hid.id = 'filho_hidden_' + idx;
-      hid.value = '';
-    }
-    if (search) {
-      search.id = 'filho_search_' + idx;
-      search.value = '';
-      search.setAttribute('hx-target', '#filho_results_' + idx);
-      search.setAttribute(
-        'hx-vals',
-        "js:{q: document.getElementById('filho_search_" +
-          idx +
-          "').value, exclude: document.getElementById('autocomplete_exclude').value}"
-      );
-    }
-    if (res) {
-      res.id = 'filho_results_' + idx;
-      res.innerHTML = '';
+    var sel = clone.querySelector('.js-filho-select');
+    if (sel) {
+      sel.id = 'filho_select_' + idx;
+      sel.value = '';
     }
     container.appendChild(clone);
-    if (window.htmx) window.htmx.process(clone);
     updateFilhoCancelState();
   });
 })();

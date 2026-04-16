@@ -15,10 +15,11 @@ from .forms import (
     MembroDadosPessoaisForm,
     MembroFamiliaForm,
     MembroInformacoesForm,
+    MembroLocalidadeForm,
     MembroMinisteriosForm,
     MembroNovoForm,
 )
-from .models import Membro
+from .models import EstadoCivil, Membro
 
 SECAO_CONFIG = {
     'dados-pessoais': {
@@ -26,6 +27,12 @@ SECAO_CONFIG = {
         'display_template': 'membros/partials/detalhe/_secao_dados_pessoais_display.html',
         'form_partial': 'membros/partials/detalhe/_secao_dados_pessoais_form.html',
         'titulo_modal': _lazy('Editar dados pessoais'),
+    },
+    'localidade': {
+        'form_class': MembroLocalidadeForm,
+        'display_template': 'membros/partials/detalhe/_secao_localidade_display.html',
+        'form_partial': 'membros/partials/detalhe/_secao_localidade_form.html',
+        'titulo_modal': _lazy('Editar localidade'),
     },
     'familia': {
         'form_class': MembroFamiliaForm,
@@ -93,24 +100,25 @@ def _filhos_labels_from_post(post):
 
 def _familia_context(membro, post=None):
     ctx = {
-        'casado_com_label': '',
         'filhos_iniciais': [],
     }
     if membro.pk:
-        if membro.casado_com_id:
-            ctx['casado_com_label'] = str(membro.casado_com)
         ctx['filhos_iniciais'] = [{'id': f.pk, 'label': str(f)} for f in membro.filhos.all()]
     if post is not None:
         fl = _filhos_labels_from_post(post)
         if fl:
             ctx['filhos_iniciais'] = fl
-        cid = post.get('casado_com')
-        if cid and str(cid).isdigit():
-            try:
-                ctx['casado_com_label'] = str(Membro.objects.get(pk=int(cid)))
-            except Membro.DoesNotExist:
-                pass
     return ctx
+
+
+def _familia_conjuge_enabled(membro, form=None, post=None) -> bool:
+    if post is not None:
+        est = (post.get('estado_civil') or '').strip()
+    elif form is not None and form.is_bound:
+        est = (form.data.get('estado_civil') or '').strip()
+    else:
+        est = (membro.estado_civil or '').strip()
+    return est == EstadoCivil.CASADO.value
 
 
 def _build_secao_ctx(membro, slug, form=None, post=None, with_form=False):
@@ -128,6 +136,9 @@ def _build_secao_ctx(membro, slug, form=None, post=None, with_form=False):
         ctx['form'] = cfg['form_class'](instance=membro)
     if slug == 'familia':
         ctx.update(_familia_context(membro, post))
+        ctx['familia_conjuge_enabled'] = _familia_conjuge_enabled(
+            membro, form=ctx.get('form'), post=post
+        )
     return ctx
 
 
@@ -155,6 +166,9 @@ def autocomplete(request):
     qs = Membro.objects.all().order_by('nome_completo')
     if exclude.isdigit():
         qs = qs.exclude(pk=int(exclude))
+    sexo_conjuge = request.GET.get('sexo_conjuge', '').strip().upper()
+    if sexo_conjuge in ('M', 'F'):
+        qs = qs.filter(sexo=sexo_conjuge)
     if len(q) < 2:
         membros = Membro.objects.none()
     else:

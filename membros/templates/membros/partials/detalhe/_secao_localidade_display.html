@@ -1,0 +1,50 @@
+{% load l10n %}
+<div class="membro-secao" data-secao="{{ secao_slug }}">
+  {% include "membros/partials/detalhe/_secao_header_display.html" with icon="bi-geo-alt" titulo="Localidade" %}
+  <div class="row g-3">
+    <div class="col-12">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Endereço</span>
+        <p class="mb-0 text-dark">{% if membro.endereco %}{{ membro.endereco|linebreaksbr }}{% else %}—{% endif %}</p>
+      </div>
+    </div>
+    <div class="col-12">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Mapa</span>
+        {% if membro.latitude is not None and membro.longitude is not None %}
+          <div class="membro-localidade-map-wrap mt-2">
+            <div class="membro-localidade-map membro-localidade-map--mount border rounded-3 overflow-hidden"
+                 data-lat="{{ membro.latitude|unlocalize }}"
+                 data-lng="{{ membro.longitude|unlocalize }}"
+                 {% if membro.foto %}data-foto-url="{{ request.scheme }}://{{ request.get_host }}{{ membro.foto.url }}"{% endif %}
+                 data-membro-nome="{{ membro.nome_completo|escape }}"
+                 role="img"
+                 aria-label="Mapa com o local do membro"></div>
+            <p class="small text-muted mb-0 mt-2">
+              <a href="https://www.google.com/maps?q={{ membro.latitude|unlocalize }},{{ membro.longitude|unlocalize }}"
+                 target="_blank"
+                 rel="noopener noreferrer"
+                 class="link-primary">Abrir no Google Maps</a>
+            </p>
+          </div>
+        {% elif membro.maps_embed %}
+          <p class="small text-muted mb-0 mt-2">Salve de novo a localidade para gerar latitude e longitude a partir do link do Maps e exibir o mapa aqui.</p>
+        {% else %}
+          <p class="mb-0 text-muted">—</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Latitude</span>
+        <p class="mb-0 text-dark">{% if membro.latitude is not None %}{{ membro.latitude|unlocalize }}{% else %}—{% endif %}</p>
+      </div>
+    </div>
+    <div class="col-md-6">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
+        <span class="membro-field-label">Longitude</span>
+        <p class="mb-0 text-dark">{% if membro.longitude is not None %}{{ membro.longitude|unlocalize }}{% else %}—{% endif %}</p>
+      </div>
+    </div>
+  </div>
+</div>

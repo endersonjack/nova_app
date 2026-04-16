@@ -4,7 +4,7 @@ from django import forms
 from django.forms import Textarea
 from django.utils.translation import gettext_lazy as _
 
-from .models import ESTADOS_COM_CONJUGE, Membro
+from .models import ESTADOS_COM_CONJUGE, EstadoCivil, Membro, Sexo
 from .validators import only_digits_cpf
 
 # <input type="date"> só aceita YYYY-MM-DD; com USE_I18N/pt-br o DateInput padrão usa dd/mm/aaaa.
@@ -29,7 +29,7 @@ class ClearableFileInputNomeTruncado(forms.ClearableFileInput):
     template_name = 'membros/widgets/clearable_file_input.html'
 
 
-def _widget_classes_membro_public(form, exclude=('casado_com', 'filhos')):
+def _widget_classes_membro_public(form, exclude=('filhos',)):
     for name, field in form.fields.items():
         if name in exclude:
             continue
@@ -38,7 +38,9 @@ def _widget_classes_membro_public(form, exclude=('casado_com', 'filhos')):
             w.attrs.setdefault('class', 'form-check-input')
         elif name in ('sexo', 'locomocao', 'estado_civil'):
             w.attrs.setdefault('class', 'form-select rounded-3')
-        elif name in ('endereco', 'observacoes', 'ministerios'):
+        elif name == 'casado_com':
+            w.attrs.setdefault('class', 'form-select rounded-3')
+        elif name in ('endereco', 'observacoes', 'ministerios', 'maps_embed'):
             w.attrs.setdefault('class', 'form-control rounded-3')
         elif name in ('foto',):
             w.attrs.setdefault('class', 'form-control rounded-3')
@@ -113,6 +115,13 @@ class MembroAdminForm(MembroCpfTelefoneCleanMixin, forms.ModelForm):
             'data_casamento': forms.DateInput(attrs={'type': 'date'}),
             'data_batismo': forms.DateInput(attrs={'type': 'date'}),
             'foto': ClearableFileInputNomeTruncado(),
+            'maps_embed': Textarea(
+                attrs={
+                    'rows': 3,
+                    'class': 'form-control',
+                    'placeholder': 'https://maps.google.com/... ou <iframe ...>',
+                }
+            ),
         }
 
     def __init__(self, *args, **kwargs):
@@ -176,19 +185,12 @@ class MembroDadosPessoaisForm(MembroCpfTelefoneCleanMixin, forms.ModelForm):
             'nome_conhecido',
             'cpf',
             'data_nascimento',
-            'endereco',
             'telefone',
             'email',
             'foto',
         )
         widgets = {
             'data_nascimento': forms.DateInput(attrs={'type': 'date'}),
-            'endereco': Textarea(
-                attrs={
-                    'rows': 3,
-                    'class': 'form-control rounded-3',
-                }
-            ),
             'foto': ClearableFileInputNomeTruncado(),
         }
 
@@ -206,6 +208,89 @@ class MembroDadosPessoaisForm(MembroCpfTelefoneCleanMixin, forms.ModelForm):
         _widget_classes_membro_public(self)
 
 
+class MembroLocalidadeForm(forms.ModelForm):
+    class Meta:
+        model = Membro
+        fields = ('endereco', 'maps_embed')
+        widgets = {
+            'endereco': Textarea(
+                attrs={
+                    'rows': 4,
+                    'class': 'form-control rounded-3',
+                }
+            ),
+            'maps_embed': Textarea(
+                attrs={
+                    'rows': 4,
+                    'class': 'form-control rounded-3',
+                    'placeholder': 'https://maps.google.com/... ou <iframe ...>',
+                }
+            ),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields['endereco'].required = False
+        self.fields['maps_embed'].required = False
+        self.fields['espelhar_endereco_conjuge'] = forms.BooleanField(
+            label=_('Adicionar o mesmo endereço: cônjuge'),
+            required=False,
+            initial=False,
+            help_text=_(
+                'Inclui endereço, mapa embed e coordenadas no cadastro do cônjuge.'
+            ),
+            widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        )
+        self.fields['espelhar_endereco_filhos'] = forms.BooleanField(
+            label=_('Adicionar o mesmo endereço: filhos'),
+            required=False,
+            initial=False,
+            help_text=_(
+                'Inclui endereço, mapa embed e coordenadas em todos os filhos '
+                'vinculados.'
+            ),
+            widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        )
+        if not (self.instance.pk and self.instance.casado_com_id):
+            self.fields['espelhar_endereco_conjuge'].widget.attrs['disabled'] = True
+        if not (self.instance.pk and self.instance.filhos.exists()):
+            self.fields['espelhar_endereco_filhos'].widget.attrs['disabled'] = True
+        _widget_classes_membro_public(
+            self,
+            exclude=('espelhar_endereco_conjuge', 'espelhar_endereco_filhos'),
+        )
+
+    def clean(self):
+        cleaned = super().clean()
+        inst = self.instance
+        conj = bool(cleaned.get('espelhar_endereco_conjuge'))
+        filh = bool(cleaned.get('espelhar_endereco_filhos'))
+        if not (inst.pk and inst.casado_com_id):
+            conj = False
+        if not (inst.pk and inst.filhos.exists()):
+            filh = False
+        cleaned['espelhar_endereco_conjuge'] = conj
+        cleaned['espelhar_endereco_filhos'] = filh
+        return cleaned
+
+    def save(self, commit=True):
+        obj = super().save(commit=commit)
+        if commit:
+            payload = {
+                'endereco': obj.endereco,
+                'maps_embed': obj.maps_embed,
+                'latitude': obj.latitude,
+                'longitude': obj.longitude,
+            }
+            if self.cleaned_data.get('espelhar_endereco_conjuge') and obj.casado_com_id:
+                Membro.objects.filter(pk=obj.casado_com_id).update(**payload)
+            if self.cleaned_data.get('espelhar_endereco_filhos'):
+                ids = list(obj.filhos.values_list('pk', flat=True))
+                if ids:
+                    Membro.objects.filter(pk__in=ids).update(**payload)
+        return obj
+
+
 class MembroFamiliaForm(forms.ModelForm):
     class Meta:
         model = Membro
@@ -217,15 +302,54 @@ class MembroFamiliaForm(forms.ModelForm):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         _configure_html5_date_inputs(self, 'data_casamento')
-        self.fields['casado_com'].widget = forms.HiddenInput()
         self.fields['casado_com'].required = False
+        self.fields['casado_com'].empty_label = _('Selecione…')
         self.fields['estado_civil'].required = False
+        if self.is_bound:
+            est_now = (self.data.get('estado_civil') or '').strip()
+        else:
+            est_now = (self.instance.estado_civil or '').strip()
+        conjuge_ok = est_now == EstadoCivil.CASADO.value
+        if not conjuge_ok and not self.is_bound:
+            self.initial = dict(self.initial)
+            self.initial['casado_com'] = None
+        if not conjuge_ok:
+            self.fields['data_casamento'].widget.attrs['readonly'] = True
+        self.fields['adicionar_filhos_conjuge'] = forms.BooleanField(
+            label=_('Adicionar filhos ao cônjuge'),
+            required=False,
+            initial=True,
+            help_text=_(
+                'Se marcado e houver cônjuge, a mesma lista de filhos será '
+                'salva também para o cônjuge.'
+            ),
+            widget=forms.CheckboxInput(attrs={'class': 'form-check-input'}),
+        )
+        if not conjuge_ok:
+            self.fields['adicionar_filhos_conjuge'].widget.attrs['disabled'] = True
         if self.instance.pk:
-            q = Membro.objects.exclude(pk=self.instance.pk)
+            q = Membro.objects.exclude(pk=self.instance.pk).order_by(
+                'nome_completo',
+            )
+            # Comparar com .value: `instance.sexo in (Sexo.MASCULINO, …)` pode falhar com TextChoices.
+            sx = (self.instance.sexo or '').strip().upper()
+            if sx == Sexo.MASCULINO.value:
+                q = q.filter(sexo__iexact=Sexo.FEMININO.value)
+            elif sx == Sexo.FEMININO.value:
+                q = q.filter(sexo__iexact=Sexo.MASCULINO.value)
             self.fields['casado_com'].queryset = q
+            self.filhos_choice_queryset = Membro.objects.exclude(
+                pk=self.instance.pk,
+            ).order_by('nome_completo')
         else:
             self.fields['casado_com'].queryset = Membro.objects.all()
-        _widget_classes_membro_public(self)
+            self.filhos_choice_queryset = Membro.objects.all().order_by(
+                'nome_completo',
+            )
+        _widget_classes_membro_public(
+            self,
+            exclude=('filhos', 'adicionar_filhos_conjuge'),
+        )
 
     def clean_casado_com(self):
         c = self.cleaned_data.get('casado_com')
@@ -238,6 +362,10 @@ class MembroFamiliaForm(forms.ModelForm):
         cleaned = super().clean()
         inst = self.instance
         ids = [int(x) for x in self.data.getlist('filhos') if str(x).isdigit()]
+        if len(ids) != len(set(ids)):
+            raise forms.ValidationError(
+                _('Não é possível repetir o mesmo filho na lista.'),
+            )
         qs = Membro.objects.filter(pk__in=ids)
         if inst.pk:
             qs = qs.exclude(pk=inst.pk)
@@ -245,16 +373,57 @@ class MembroFamiliaForm(forms.ModelForm):
             raise forms.ValidationError(
                 _('Um membro não pode ser filho de si mesmo.'),
             )
+        if inst.pk and ids:
+            allowed = set(
+                self.filhos_choice_queryset.values_list('pk', flat=True),
+            )
+            bad = [i for i in ids if i not in allowed]
+            if bad:
+                raise forms.ValidationError(
+                    _('Seleção de filho inválida.'),
+                )
         cleaned['filhos'] = qs
         est = cleaned.get('estado_civil') or ''
         if est not in ESTADOS_COM_CONJUGE:
             cleaned['casado_com'] = None
+            cleaned['data_casamento'] = None
+        else:
+            c = cleaned.get('casado_com')
+            sx = (self.instance.sexo or '').strip().upper()
+            if c and self.instance.pk and sx in (
+                Sexo.MASCULINO.value,
+                Sexo.FEMININO.value,
+            ):
+                opp_letter = (
+                    Sexo.FEMININO.value
+                    if sx == Sexo.MASCULINO.value
+                    else Sexo.MASCULINO.value
+                )
+                if (c.sexo or '').strip().upper() != opp_letter:
+                    raise forms.ValidationError(
+                        {
+                            'casado_com': _(
+                                'O cônjuge deve ser do sexo oposto ao do membro.'
+                            ),
+                        }
+                    )
+        mirror = bool(cleaned.get('adicionar_filhos_conjuge'))
+        if (
+            (cleaned.get('estado_civil') or '').strip()
+            != EstadoCivil.CASADO.value
+            or not cleaned.get('casado_com')
+        ):
+            mirror = False
+        cleaned['adicionar_filhos_conjuge'] = mirror
         return cleaned
 
     def save(self, commit=True):
         obj = super().save(commit=commit)
         if commit:
-            obj.filhos.set(self.cleaned_data.get('filhos', []))
+            filhos = self.cleaned_data.get('filhos', [])
+            obj.filhos.set(filhos)
+            if self.cleaned_data.get('adicionar_filhos_conjuge') and obj.casado_com_id:
+                obj.casado_com.filhos.set(filhos)
         return obj
 
 

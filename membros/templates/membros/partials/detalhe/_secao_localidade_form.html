@@ -1,0 +1,78 @@
+{% load i18n l10n %}
+<form class="app-modal-form membro-secao-form"
+      method="post"
+      hx-post="{{ action_url }}"
+      hx-target="#app-modal-content"
+      hx-swap="innerHTML"
+      hx-indicator="#app-modal-indicator"
+      hx-disabled-elt="find button[type=submit]">
+  {% csrf_token %}
+  <div class="modal-body py-3">
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger rounded-3">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    <div class="row g-3">
+      <div class="col-12">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.endereco.id_for_label }}">{{ form.endereco.label }}</label>
+          {{ form.endereco }}
+          {% for err in form.endereco.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-12">
+        <div class="d-flex flex-column gap-2">
+          <div class="form-check">
+            {{ form.espelhar_endereco_conjuge }}
+            <label class="form-check-label fw-semibold" for="{{ form.espelhar_endereco_conjuge.id_for_label }}">{{ form.espelhar_endereco_conjuge.label }}</label>
+          </div>
+          <div class="form-check">
+            {{ form.espelhar_endereco_filhos }}
+            <label class="form-check-label fw-semibold" for="{{ form.espelhar_endereco_filhos.id_for_label }}">{{ form.espelhar_endereco_filhos.label }}</label>
+          </div>
+        </div>
+        <p class="form-text small mb-0 mt-2">{% trans "Incluem endereço, mapa embed e coordenadas nos cadastros selecionados." %}</p>
+        {% for err in form.espelhar_endereco_conjuge.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        {% for err in form.espelhar_endereco_filhos.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-12">
+        <div class="membro-field-shell border rounded-3 px-3 py-2">
+          <label class="membro-field-label" for="{{ form.maps_embed.id_for_label }}">{{ form.maps_embed.label }}</label>
+          {{ form.maps_embed }}
+          {% if form.maps_embed.help_text %}<p class="form-text small mb-0 mt-1">{{ form.maps_embed.help_text }}</p>{% endif %}
+          {% for err in form.maps_embed.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="membro-field-shell border rounded-3 px-3 py-2 bg-light bg-opacity-50">
+          <span class="membro-field-label d-block" id="label-lat-preview">Latitude</span>
+          <input type="text"
+                 class="form-control rounded-3 mt-1 border-0 bg-transparent px-0 shadow-none"
+                 readonly
+                 tabindex="-1"
+                 aria-labelledby="label-lat-preview"
+                 value="{% if form.instance.latitude is not None %}{{ form.instance.latitude|unlocalize }}{% else %}—{% endif %}" />
+          <p class="form-text small mb-0 mt-1">Preenchida automaticamente ao salvar, quando o link embed permitir.</p>
+        </div>
+      </div>
+      <div class="col-md-6">
+        <div class="membro-field-shell border rounded-3 px-3 py-2 bg-light bg-opacity-50">
+          <span class="membro-field-label d-block" id="label-lng-preview">Longitude</span>
+          <input type="text"
+                 class="form-control rounded-3 mt-1 border-0 bg-transparent px-0 shadow-none"
+                 readonly
+                 tabindex="-1"
+                 aria-labelledby="label-lng-preview"
+                 value="{% if form.instance.longitude is not None %}{{ form.instance.longitude|unlocalize }}{% else %}—{% endif %}" />
+          <p class="form-text small mb-0 mt-1">Preenchida automaticamente ao salvar, quando o link embed permitir.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="modal-footer border-top px-3 py-3 flex-shrink-0 flex-wrap gap-2 bg-body-secondary bg-opacity-10">
+    <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
+    <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+    <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3">Salvar</button>
+  </div>
+</form>

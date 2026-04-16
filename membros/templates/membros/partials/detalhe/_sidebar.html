@@ -1,4 +1,4 @@
-{% comment %}secao_ativa: dados-pessoais | familia | batismo | informacoes | ministerios{% endcomment %}
+{% comment %}secao_ativa: dados-pessoais | localidade | familia | batismo | informacoes | ministerios{% endcomment %}
 <div class="membro-detalhe-sidebar card border-0 shadow-sm h-100">
   <div class="card-body p-3">
     <p class="small fw-semibold text-dark mb-0">Dados do membro</p>
@@ -12,6 +12,15 @@
          hx-indicator="#membro-secao-indicator"
          hx-on:click="document.querySelectorAll('.membro-detalhe-nav-item').forEach(function(el){el.classList.remove('active');}); this.classList.add('active');">
         <i class="bi bi-person-vcard"></i> Dados pessoais
+      </a>
+      <a href="#"
+         class="list-group-item list-group-item-action membro-detalhe-nav-item d-flex align-items-center gap-2 py-2 {% if secao_ativa == 'localidade' %}active{% endif %}"
+         hx-get="{% url 'membros:secao' membro.pk 'localidade' %}"
+         hx-target="#membro-detalhe-main"
+         hx-swap="innerHTML"
+         hx-indicator="#membro-secao-indicator"
+         hx-on:click="document.querySelectorAll('.membro-detalhe-nav-item').forEach(function(el){el.classList.remove('active');}); this.classList.add('active');">
+        <i class="bi bi-geo-alt"></i> Localidade
       </a>
       <a href="#"
          class="list-group-item list-group-item-action membro-detalhe-nav-item d-flex align-items-center gap-2 py-2 {% if secao_ativa == 'familia' %}active{% endif %}"

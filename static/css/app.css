@@ -437,6 +437,39 @@ nav.app-sidebar {
   overflow-y: auto;
 }
 
+/* Modal edição de seções (membro): título e rodapé fixos; só o corpo rola */
+#app-modal-dialog.modal-dialog-scrollable
+  #app-modal-content:has(> .membro-secao-modal-shell) {
+  display: flex;
+  flex-direction: column;
+  max-height: 100%;
+  overflow: hidden;
+  min-height: 0;
+}
+
+.membro-secao-modal-shell {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+  max-height: 100%;
+}
+
+.membro-secao-modal-shell form.membro-secao-form {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.membro-secao-modal-shell form.membro-secao-form > .modal-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+}
+
 /* Modal “Novo membro”: um pouco mais largo que .modal-sm (~300px) */
 #app-modal-dialog.app-modal-dialog--novo {
   max-width: min(26.5rem, calc(100% - 2rem));

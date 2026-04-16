@@ -1,12 +1,12 @@
-<div class="modal-body py-3">
-  <form class="app-modal-form membro-secao-form"
-        method="post"
-        hx-post="{{ action_url }}"
-        hx-target="#app-modal-content"
-        hx-swap="innerHTML"
-        hx-indicator="#app-modal-indicator"
-        hx-disabled-elt="find button[type=submit]">
-    {% csrf_token %}
+<form class="app-modal-form membro-secao-form"
+      method="post"
+      hx-post="{{ action_url }}"
+      hx-target="#app-modal-content"
+      hx-swap="innerHTML"
+      hx-indicator="#app-modal-indicator"
+      hx-disabled-elt="find button[type=submit]">
+  {% csrf_token %}
+  <div class="modal-body py-3">
     {% if form.non_field_errors %}
       <div class="alert alert-danger rounded-3">{{ form.non_field_errors }}</div>
     {% endif %}
@@ -18,11 +18,11 @@
       {% if form.ministerios.help_text %}<div class="form-text small">{{ form.ministerios.help_text }}</div>{% endif %}
       {% for err in form.ministerios.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
     </div>
+  </div>
 
-    <div class="modal-footer border-top mt-3 px-0 pb-0 pt-3 flex-wrap gap-2">
-      <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
-      <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-      <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3">Salvar</button>
-    </div>
-  </form>
-</div>
+  <div class="modal-footer border-top px-3 py-3 flex-shrink-0 flex-wrap gap-2 bg-body-secondary bg-opacity-10">
+    <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
+    <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+    <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3">Salvar</button>
+  </div>
+</form>

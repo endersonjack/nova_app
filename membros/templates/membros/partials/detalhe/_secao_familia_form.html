@@ -1,12 +1,13 @@
-<div class="modal-body py-3">
-  <form class="app-modal-form membro-secao-form"
-        method="post"
-        hx-post="{{ action_url }}"
-        hx-target="#app-modal-content"
-        hx-swap="innerHTML"
-        hx-indicator="#app-modal-indicator"
-        hx-disabled-elt="find button[type=submit]">
-    {% csrf_token %}
+{% load i18n %}
+<form class="app-modal-form membro-secao-form"
+      method="post"
+      hx-post="{{ action_url }}"
+      hx-target="#app-modal-content"
+      hx-swap="innerHTML"
+      hx-indicator="#app-modal-indicator"
+      hx-disabled-elt="find button[type=submit]">
+  {% csrf_token %}
+  <div class="modal-body py-3">
     {% if form.non_field_errors %}
       <div class="alert alert-danger rounded-3">{{ form.non_field_errors }}</div>
     {% endif %}
@@ -21,29 +22,31 @@
       </div>
     </div>
 
-    <div class="row g-3 mt-1">
+    <div class="row g-3 mt-1" id="js-familia-conjuge-fields">
       <div class="col-md-6 position-relative">
-        <div class="membro-field-shell border rounded-3 px-3 py-2">
-          <label class="membro-field-label" for="casado_com_search">{{ form.casado_com.label }}</label>
-          <input type="hidden" id="autocomplete_exclude" value="{{ membro.pk }}" />
-          <input type="search"
-                 id="casado_com_search"
-                 class="form-control rounded-3"
-                 placeholder="Digite para buscar…"
-                 value="{{ casado_com_label }}"
-                 autocomplete="off"
-                 hx-get="{% url 'membros:autocomplete' %}"
-                 hx-trigger="keyup changed delay:350ms"
-                 hx-target="#casado_com_results"
-                 hx-swap="innerHTML"
-                 hx-vals="js:{q: document.getElementById('casado_com_search').value, exclude: document.getElementById('autocomplete_exclude').value}" />
-          {{ form.casado_com }}
-          <div id="casado_com_results" class="js-autocomplete-host autocomplete-dropdown shadow-sm border rounded-3 mt-1 bg-white position-absolute start-0 end-0 z-3"></div>
+        <div class="membro-field-shell border rounded-3 px-3 py-2{% if not familia_conjuge_enabled %} bg-light bg-opacity-50{% endif %}">
+          <label class="membro-field-label" for="{{ form.casado_com.id_for_label }}">{{ form.casado_com.label }}</label>
+          {% with cur=form.casado_com.value qs=form.casado_com.field.queryset %}
+          <select name="casado_com"
+                  id="{{ form.casado_com.id_for_label }}"
+                  class="form-select rounded-3 js-familia-casado-com-select"
+                  {% if not familia_conjuge_enabled %}disabled{% endif %}>
+            <option value="">{% if form.casado_com.field.empty_label %}{{ form.casado_com.field.empty_label }}{% else %}—{% endif %}</option>
+            {% for m in qs %}
+              <option value="{{ m.pk }}"{% if cur == m.pk or cur|stringformat:"s" == m.pk|stringformat:"s" %} selected{% endif %}>{{ m }}</option>
+            {% endfor %}
+          </select>
+          {% endwith %}
           {% for err in form.casado_com.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+          {% if familia_conjuge_enabled %}
+            {% if not form.casado_com.field.queryset.exists %}
+              <p class="small text-muted mb-0 mt-2">{% trans "Não há outros membros cadastrados do sexo oposto para vincular como cônjuge." %}</p>
+            {% endif %}
+          {% endif %}
         </div>
       </div>
       <div class="col-md-6">
-        <div class="membro-field-shell border rounded-3 px-3 py-2">
+        <div class="membro-field-shell border rounded-3 px-3 py-2{% if not familia_conjuge_enabled %} bg-light bg-opacity-50{% endif %}">
           <label class="membro-field-label" for="{{ form.data_casamento.id_for_label }}">{{ form.data_casamento.label }}</label>
           {{ form.data_casamento }}
           {% for err in form.data_casamento.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
@@ -51,13 +54,21 @@
       </div>
     </div>
 
-    <div class="mt-4 position-relative">
+    <div class="mt-4 membro-familia-filhos-scroll position-relative">
       <p class="membro-field-label mb-2">Filhos (as)</p>
-      <div id="filhos-rows-container" aria-label="Filhos">
+      <div class="form-check mb-3">
+        {{ form.adicionar_filhos_conjuge }}
+        <label class="form-check-label fw-semibold" for="{{ form.adicionar_filhos_conjuge.id_for_label }}">{{ form.adicionar_filhos_conjuge.label }}</label>
+        {% if form.adicionar_filhos_conjuge.help_text %}
+          <p class="form-text small mb-0 mt-1">{{ form.adicionar_filhos_conjuge.help_text }}</p>
+        {% endif %}
+        {% for err in form.adicionar_filhos_conjuge.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
+      </div>
+      <div id="filhos-rows-container" class="row g-3" aria-label="Filhos">
         {% for item in filhos_iniciais %}
-          {% include "membros/partials/_filho_row.html" with item=item idx=forloop.counter0 %}
+          {% include "membros/partials/_filho_row.html" with item=item idx=forloop.counter0 filhos_queryset=form.filhos_choice_queryset %}
         {% empty %}
-          {% include "membros/partials/_filho_row.html" with item=None idx=0 %}
+          {% include "membros/partials/_filho_row.html" with item=None idx=0 filhos_queryset=form.filhos_choice_queryset %}
         {% endfor %}
       </div>
       <div class="d-flex flex-wrap align-items-center gap-3 mt-1">
@@ -65,11 +76,11 @@
         <button type="button" class="btn btn-link btn-sm px-0 text-decoration-none text-muted" id="js-filho-cancel" disabled>cancelar</button>
       </div>
     </div>
+  </div>
 
-    <div class="modal-footer border-top mt-3 px-0 pb-0 pt-3 flex-wrap gap-2">
-      <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
-      <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
-      <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3">Salvar</button>
-    </div>
-  </form>
-</div>
+  <div class="modal-footer border-top px-3 py-3 flex-shrink-0 flex-wrap gap-2 bg-body-secondary bg-opacity-10">
+    <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
+    <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+    <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3">Salvar</button>
+  </div>
+</form>

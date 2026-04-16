@@ -13,7 +13,7 @@
         <tbody>
           {% for m in membros %}
           <tr>
-            <td class="fw-medium">{{ m.nome_conhecido|default:m.nome_completo }}</td>
+            <td class="fw-medium">{{ m.nome_completo }}</td>
             <td class="text-muted small">{{ m.email|default:"—" }}</td>
             <td class="text-muted small">{{ m.telefone|default:"—" }}</td>
             <td class="text-end">

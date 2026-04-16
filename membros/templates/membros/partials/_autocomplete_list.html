@@ -6,8 +6,8 @@
   <button type="button"
           class="list-group-item list-group-item-action border-0 py-2 px-3 text-start js-autocomplete-pick"
           data-membro-id="{{ m.pk }}"
-          data-membro-label="{{ m.nome_conhecido|default:m.nome_completo }}{% if m.email %} — {{ m.email }}{% endif %}">
-    <span class="fw-semibold text-dark">{{ m.nome_conhecido|default:m.nome_completo }}</span>
+          data-membro-label="{{ m.nome_completo }}{% if m.email %} — {{ m.email }}{% endif %}">
+    <span class="fw-semibold text-dark">{{ m.nome_completo }}</span>
     <span class="text-muted small d-block">{{ m.email|default:"" }}</span>
   </button>
   {% endfor %}

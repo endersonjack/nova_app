@@ -43,7 +43,14 @@ class MembroAdmin(admin.ModelAdmin):
         ),
         (
             'Contato',
-            {'fields': ('endereco', 'telefone', 'email')},
+            {'fields': ('telefone', 'email')},
+        ),
+        (
+            'Localidade',
+            {
+                'fields': ('endereco', 'maps_embed', 'latitude', 'longitude'),
+                'description': 'Ao salvar, latitude e longitude são atualizadas quando o link ou iframe contiver coordenadas; caso contrário você pode preenchê-las à mão.',
+            },
         ),
         (
             'Família',
