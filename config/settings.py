@@ -129,8 +129,9 @@ MIDDLEWARE = [
     'django_htmx.middleware.HtmxMiddleware',
 ]
 
-LOGIN_URL = '/admin/login/'
+LOGIN_URL = '/login/'
 LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/login/'
 
 ROOT_URLCONF = 'config.urls'
 
@@ -144,6 +145,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'usuarios.context_processors.usuario_membro',
             ],
         },
     },
@@ -274,7 +276,14 @@ else:
         },
     }
 
-MEDIA_URL = '/media/'
+# Uploads ficam só no disco da máquina onde o processo roda (ex.: pasta local do projeto).
+# Não há envio para S3 nem URL absoluta forçada; em dev é BASE_DIR/media no seu computador.
+_media_url_env = os.environ.get('MEDIA_URL', '').strip()
+if _media_url_env:
+    MEDIA_URL = _media_url_env if _media_url_env.endswith('/') else f'{_media_url_env}/'
+else:
+    MEDIA_URL = '/media/'
+
 _media_root_env = os.environ.get('MEDIA_ROOT', '').strip()
 MEDIA_ROOT = Path(_media_root_env).resolve() if _media_root_env else BASE_DIR / 'media'
 

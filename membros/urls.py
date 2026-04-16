@@ -5,6 +5,7 @@ from . import views
 app_name = 'membros'
 
 urlpatterns = [
+    path('mapa/', views.mapa_membros, name='mapa'),
     path('', views.index, name='membros_index'),
     path('lista/', views.lista_partial, name='lista_partial'),
     path('buscar/', views.autocomplete, name='autocomplete'),

@@ -3,6 +3,11 @@
 {% block title %}Membros{% endblock %}
 {% block page_title %}Membros{% endblock %}
 
+{% block extra_css %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="{% static 'membros/css/membro_lista.css' %}" />
+{% endblock %}
+
 {% block content %}
 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
   <p class="text-muted mb-0">Cadastro de membros da igreja.</p>
@@ -29,8 +34,28 @@
     {% include "membros/partials/_skeleton.html" %}
   </div>
 </div>
+
+<div class="modal fade" id="membro-lista-map-modal" tabindex="-1" aria-labelledby="membro-lista-map-modal-label" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header border-0 pb-0">
+        <h2 class="modal-title h5 fw-bold" id="membro-lista-map-modal-label">Local no mapa</h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+      </div>
+      <div class="modal-body pt-2">
+        <div id="membro-lista-map-mount"
+             class="membro-localidade-map membro-localidade-map--mount border rounded-3 overflow-hidden w-100"
+             role="img"
+             aria-label="Mapa com o local do membro"></div>
+      </div>
+    </div>
+  </div>
+</div>
 {% endblock %}
 
 {% block extra_js %}
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="{% static 'membros/js/membro_localidade_map.js' %}"></script>
+  <script src="{% static 'membros/js/membro_lista.js' %}"></script>
   <script src="{% static 'membros/js/admin_cpf_mask.js' %}"></script>
 {% endblock %}

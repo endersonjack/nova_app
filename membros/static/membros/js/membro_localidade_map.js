@@ -103,6 +103,7 @@
   }
 
   window.membroLocalidadeMapScan = scan;
+  window.membroLocalidadeMapTeardown = teardown;
 
   document.addEventListener('DOMContentLoaded', function () {
     var main = document.getElementById('membro-detalhe-main');

@@ -16,7 +16,7 @@
             <div class="membro-localidade-map membro-localidade-map--mount border rounded-3 overflow-hidden"
                  data-lat="{{ membro.latitude|unlocalize }}"
                  data-lng="{{ membro.longitude|unlocalize }}"
-                 {% if membro.foto %}data-foto-url="{{ request.scheme }}://{{ request.get_host }}{{ membro.foto.url }}"{% endif %}
+                 {% if membro.foto %}data-foto-url="{{ membro.foto.url }}"{% endif %}
                  data-membro-nome="{{ membro.nome_completo|escape }}"
                  role="img"
                  aria-label="Mapa com o local do membro"></div>

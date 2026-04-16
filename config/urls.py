@@ -18,9 +18,12 @@ import re
 
 from django.conf import settings
 from django.contrib import admin
+from django.contrib.auth import views as auth_views
 from django.http import HttpResponse
 from django.urls import include, path, re_path
 from django.views.static import serve
+
+from usuarios.forms import LoginForm
 
 
 def favicon_view(_request):
@@ -30,9 +33,21 @@ def favicon_view(_request):
 urlpatterns = [
     path('favicon.ico', favicon_view),
     path('admin/', admin.site.urls),
-    path('', include('usuarios.urls')),
-    path('usuarios/', include('usuarios.urls')),
-    path('dashboard/', include('dashboard.urls')),
+    path(
+        'login/',
+        auth_views.LoginView.as_view(
+            template_name='usuarios/login.html',
+            authentication_form=LoginForm,
+            redirect_authenticated_user=True,
+        ),
+        name='login',
+    ),
+    path(
+        'logout/',
+        auth_views.LogoutView.as_view(),
+        name='logout',
+    ),
+    path('', include('dashboard.urls')),
     path('membros/', include('membros.urls')),
 ]
 

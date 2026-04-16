@@ -599,3 +599,13 @@ nav.app-sidebar {
   text-overflow: ellipsis;
   white-space: nowrap;
 }
+
+/* Página de login (fora do shell principal) */
+body.auth-login-body {
+  background: linear-gradient(165deg, var(--app-sidebar-bg) 0%, var(--app-sidebar-logo-bg) 38%, var(--app-bg) 38%);
+}
+
+.auth-login-card {
+  max-width: 26rem;
+  border-radius: 1rem;
+}

@@ -1,0 +1,125 @@
+.membro-lista-row {
+  cursor: pointer;
+}
+
+.membro-lista-row:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: -2px;
+}
+
+/* Lista de membros: miniatura amplia no hover (in-place; evita corte por overflow da tabela) */
+.membro-lista-photo-wrap {
+  position: relative;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  z-index: 1;
+}
+
+.membro-lista-photo-wrap:hover,
+.membro-lista-photo-wrap:focus-within {
+  z-index: 60;
+}
+
+.membro-lista-photo-thumb {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  object-fit: cover;
+  display: block;
+  border: 2px solid #e2e8f0;
+  background: #f1f5f9;
+  transform-origin: left center;
+  transition:
+    transform 0.2s ease,
+    box-shadow 0.2s ease;
+}
+
+.membro-lista-photo-wrap:hover .membro-lista-photo-thumb,
+.membro-lista-photo-wrap:focus-within .membro-lista-photo-thumb {
+  transform: scale(2.85);
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.22);
+  border-color: #fff;
+}
+
+.membro-lista-photo-placeholder {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  color: #94a3b8;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.membro-lista-map-btn {
+  width: 2.25rem;
+  height: 2.25rem;
+  padding: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  border: none;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease,
+    transform 0.1s ease;
+}
+
+.membro-lista-map-btn:disabled,
+.membro-lista-map-btn.membro-lista-map-btn--disabled {
+  background: #e2e8f0;
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.membro-lista-map-btn.membro-lista-map-btn--ok:not(:disabled) {
+  background: rgba(25, 135, 84, 0.15);
+  color: #198754;
+}
+
+.membro-lista-map-btn.membro-lista-map-btn--ok:not(:disabled):hover {
+  background: rgba(25, 135, 84, 0.28);
+  transform: scale(1.05);
+}
+
+.membro-lista-map-btn.membro-lista-map-btn--ok:not(:disabled):focus-visible {
+  outline: 2px solid #198754;
+  outline-offset: 2px;
+}
+
+#membro-lista-map-modal .membro-localidade-map {
+  height: min(55vh, 22rem);
+  min-height: 200px;
+}
+
+#membro-lista-map-modal .leaflet-container {
+  font-family: inherit;
+}
+
+#membro-lista-map-modal .membro-map-pin {
+  background: transparent !important;
+  border: none !important;
+}
+
+#membro-lista-map-modal .membro-map-pin-inner {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  overflow: hidden;
+  border: 3px solid #fff;
+  box-shadow: 0 2px 12px rgba(15, 23, 42, 0.35);
+}
+
+#membro-lista-map-modal .membro-map-pin-inner img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}

@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Mapa de membros{% endblock %}
+{% block page_title %}Mapa de membros{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
+  <link rel="stylesheet" href="{% static 'membros/css/mapa_membros.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="membros-mapa-layout d-flex flex-column flex-grow-1">
+  {% if not markers_payload %}
+    <div class="alert alert-info border-0 shadow-sm mb-3 py-2 px-3 small" role="status">
+      Nenhum membro com latitude e longitude cadastradas. Preencha o mapa na seção Localidade de cada registro.
+    </div>
+  {% endif %}
+  <div id="membros-mapa-global"
+       class="membros-mapa-global flex-grow-1 w-100 border rounded-3 shadow-sm overflow-hidden"
+       role="application"
+       aria-label="Mapa com membros"></div>
+</div>
+{{ markers_payload|json_script:"membros-mapa-data" }}
+{% endblock %}
+
+{% block extra_js %}
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+  <script src="{% static 'membros/js/mapa_membros.js' %}"></script>
+{% endblock %}

@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.core.exceptions import ObjectDoesNotExist
+from django.urls import reverse
 from django.utils.html import format_html
 
 from .forms import MembroAdminForm
@@ -23,6 +25,7 @@ class MembroAdmin(admin.ModelAdmin):
     readonly_fields = (
         'cpf_formatado_readonly',
         'foto_preview',
+        'usuario_login_display',
     )
 
     fieldsets = (
@@ -43,7 +46,7 @@ class MembroAdmin(admin.ModelAdmin):
         ),
         (
             'Contato',
-            {'fields': ('telefone', 'email')},
+            {'fields': ('telefone', 'email', 'usuario_login_display')},
         ),
         (
             'Localidade',
@@ -104,3 +107,17 @@ class MembroAdmin(admin.ModelAdmin):
                 obj.foto.url,
             )
         return '—'
+
+    @admin.display(description='Usuário do sistema vinculado')
+    def usuario_login_display(self, obj: Membro) -> str:
+        if not obj.pk:
+            return '—'
+        try:
+            p = obj.perfil_usuario
+        except ObjectDoesNotExist:
+            return '—'
+        if not p.user_id:
+            return '—'
+        u = p.user
+        url = reverse('admin:auth_user_change', args=[u.pk])
+        return format_html('<a href="{}">{}</a>', url, u.get_username())

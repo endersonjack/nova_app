@@ -152,6 +152,33 @@ def index(request):
 
 @login_required
 @require_http_methods(['GET'])
+def mapa_membros(request):
+    qs = (
+        Membro.objects.filter(latitude__isnull=False, longitude__isnull=False)
+        .only('pk', 'nome_completo', 'nome_conhecido', 'foto', 'latitude', 'longitude')
+        .order_by('nome_completo')
+    )
+    markers = []
+    for m in qs:
+        exibir = ((m.nome_conhecido or '').strip() or (m.nome_completo or '').strip() or '—')
+        markers.append(
+            {
+                'lat': float(m.latitude),
+                'lng': float(m.longitude),
+                'nome': exibir,
+                'foto': m.foto.url if m.foto else '',
+                'url': reverse('membros:detalhe', args=[m.pk]),
+            }
+        )
+    return render(
+        request,
+        'membros/mapa_membros.html',
+        {'markers_payload': markers},
+    )
+
+
+@login_required
+@require_http_methods(['GET'])
 def lista_partial(request):
     membros = Membro.objects.select_related('casado_com').order_by('nome_completo')
     return render(
