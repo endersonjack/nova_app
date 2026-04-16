@@ -18,7 +18,7 @@ class MembroAdmin(admin.ModelAdmin):
     )
     list_filter = ('sexo', 'estado_civil', 'batizado', 'locomocao')
     search_fields = ('nome_completo', 'nome_conhecido', 'email', 'cpf', 'telefone')
-    autocomplete_fields = ('casado_com',)
+    autocomplete_fields = ('casado_com', 'pai', 'mae')
     filter_horizontal = ('filhos',)
     readonly_fields = (
         'cpf_formatado_readonly',
@@ -54,7 +54,16 @@ class MembroAdmin(admin.ModelAdmin):
         ),
         (
             'Família',
-            {'fields': ('estado_civil', 'casado_com', 'data_casamento', 'filhos')},
+            {
+                'fields': (
+                    'estado_civil',
+                    'casado_com',
+                    'data_casamento',
+                    'pai',
+                    'mae',
+                    'filhos',
+                ),
+            },
         ),
         (
             'Batismo',

@@ -10,7 +10,19 @@
     <div class="col-md-6">
       <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
         <span class="membro-field-label">Casado(a) com</span>
-        <p class="mb-0 text-dark">{% if membro.casado_com %}{{ membro.casado_com }}{% else %}—{% endif %}</p>
+        {% if membro.casado_com %}
+          <p class="mb-0 text-dark d-flex align-items-center gap-2 flex-wrap">
+            <span>{{ membro.casado_com }}</span>
+            <a href="{% url 'membros:detalhe' membro.casado_com.pk %}"
+               class="btn btn-link btn-sm p-0 text-primary membro-familia-perfil-link"
+               title="Ver perfil"
+               aria-label="Ver perfil de {{ membro.casado_com.nome_completo|escape }}">
+              <i class="bi bi-person-vcard" aria-hidden="true"></i>
+            </a>
+          </p>
+        {% else %}
+          <p class="mb-0 text-dark">—</p>
+        {% endif %}
       </div>
     </div>
     <div class="col-md-6">
@@ -20,13 +32,59 @@
       </div>
     </div>
   </div>
+  <div class="row g-3 mt-2 align-items-stretch">
+    <div class="col-md-6 d-flex">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display flex-grow-1 w-100">
+        <span class="membro-field-label">Pai</span>
+        {% if membro.pai %}
+          <p class="mb-0 text-dark d-flex align-items-center gap-2 flex-wrap">
+            <span>{{ membro.pai }}</span>
+            <a href="{% url 'membros:detalhe' membro.pai.pk %}"
+               class="btn btn-link btn-sm p-0 text-primary membro-familia-perfil-link"
+               title="Ver perfil"
+               aria-label="Ver perfil de {{ membro.pai.nome_completo|escape }}">
+              <i class="bi bi-person-vcard" aria-hidden="true"></i>
+            </a>
+          </p>
+        {% else %}
+          <p class="mb-0 text-dark">—</p>
+        {% endif %}
+      </div>
+    </div>
+    <div class="col-md-6 d-flex">
+      <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display flex-grow-1 w-100">
+        <span class="membro-field-label">Mãe</span>
+        {% if membro.mae %}
+          <p class="mb-0 text-dark d-flex align-items-center gap-2 flex-wrap">
+            <span>{{ membro.mae }}</span>
+            <a href="{% url 'membros:detalhe' membro.mae.pk %}"
+               class="btn btn-link btn-sm p-0 text-primary membro-familia-perfil-link"
+               title="Ver perfil"
+               aria-label="Ver perfil de {{ membro.mae.nome_completo|escape }}">
+              <i class="bi bi-person-vcard" aria-hidden="true"></i>
+            </a>
+          </p>
+        {% else %}
+          <p class="mb-0 text-dark">—</p>
+        {% endif %}
+      </div>
+    </div>
+  </div>
   <div class="mt-4">
     <p class="membro-field-label mb-2">Filhos (as)</p>
     {% with filhos=membro.filhos.all %}
       {% if filhos %}
         <ul class="list-group list-group-flush border rounded-3 overflow-hidden">
           {% for f in filhos %}
-            <li class="list-group-item py-2">{{ f }}</li>
+            <li class="list-group-item py-2 d-flex align-items-center gap-2">
+              <span class="flex-grow-1 min-w-0">{{ f }}</span>
+              <a href="{% url 'membros:detalhe' f.pk %}"
+                 class="btn btn-link btn-sm p-0 flex-shrink-0 text-primary membro-familia-perfil-link"
+                 title="Ver perfil"
+                 aria-label="Ver perfil de {{ f.nome_completo|escape }}">
+                <i class="bi bi-person-vcard" aria-hidden="true"></i>
+              </a>
+            </li>
           {% endfor %}
         </ul>
       {% else %}

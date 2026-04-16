@@ -420,10 +420,20 @@ class MembroFamiliaForm(forms.ModelForm):
     def save(self, commit=True):
         obj = super().save(commit=commit)
         if commit:
-            filhos = self.cleaned_data.get('filhos', [])
-            obj.filhos.set(filhos)
+            filhos_qs = self.cleaned_data.get('filhos')
+            old_main = set(obj.filhos.values_list('pk', flat=True))
+            new_ids = (
+                set(filhos_qs.values_list('pk', flat=True))
+                if filhos_qs is not None
+                else set()
+            )
+            obj.filhos.set(filhos_qs if filhos_qs is not None else [])
+            obj.sincronizar_papel_parental_filhos(old_main, new_ids)
             if self.cleaned_data.get('adicionar_filhos_conjuge') and obj.casado_com_id:
-                obj.casado_com.filhos.set(filhos)
+                esp = Membro.objects.get(pk=obj.casado_com_id)
+                old_esp = set(esp.filhos.values_list('pk', flat=True))
+                esp.filhos.set(filhos_qs if filhos_qs is not None else [])
+                esp.sincronizar_papel_parental_filhos(old_esp, new_ids)
         return obj
 
 

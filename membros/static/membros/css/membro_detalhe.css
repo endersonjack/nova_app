@@ -71,6 +71,15 @@
   margin-bottom: 0.25rem;
 }
 
+.membro-familia-perfil-link {
+  line-height: 1;
+}
+
+.membro-familia-perfil-link .bi {
+  font-size: 1.1rem;
+  vertical-align: -0.125em;
+}
+
 .membro-localidade-map-wrap {
   max-width: min(100%, 32rem);
 }

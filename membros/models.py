@@ -166,6 +166,30 @@ class Membro(models.Model):
         blank=True,
         help_text=_('Outros membros cadastrados como filhos.'),
     )
+    pai = models.ForeignKey(
+        'self',
+        verbose_name=_('Pai'),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='como_pai_de',
+        help_text=_(
+            'Preenchido automaticamente ao vincular um filho a um pai (sexo masculino) '
+            'na seção família desse pai.'
+        ),
+    )
+    mae = models.ForeignKey(
+        'self',
+        verbose_name=_('Mãe'),
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='como_mae_de',
+        help_text=_(
+            'Preenchido automaticamente ao vincular um filho a uma mãe (sexo feminino) '
+            'na seção família dessa mãe.'
+        ),
+    )
 
     batizado = models.BooleanField(_('É batizado(a)?'), default=False)
     data_batismo = models.DateField(_('Data de batismo'), null=True, blank=True)
@@ -217,6 +241,23 @@ class Membro(models.Model):
 
     def __str__(self) -> str:
         return (self.nome_completo or '').strip() or '—'
+
+    def sincronizar_papel_parental_filhos(self, old_ids: set, new_ids: set) -> None:
+        """Atualiza pai/mae nos filhos quando a lista M2M filhos deste membro muda."""
+        if not self.pk:
+            return
+        sx = (self.sexo or '').strip().upper()
+        removed = old_ids - new_ids
+        for cid in removed:
+            if sx == Sexo.MASCULINO.value:
+                Membro.objects.filter(pk=cid, pai_id=self.pk).update(pai_id=None)
+            elif sx == Sexo.FEMININO.value:
+                Membro.objects.filter(pk=cid, mae_id=self.pk).update(mae_id=None)
+        for cid in new_ids:
+            if sx == Sexo.MASCULINO.value:
+                Membro.objects.filter(pk=cid).update(pai_id=self.pk)
+            elif sx == Sexo.FEMININO.value:
+                Membro.objects.filter(pk=cid).update(mae_id=self.pk)
 
     def _sync_maps_coordinates(self) -> None:
         raw = (self.maps_embed or '').strip()

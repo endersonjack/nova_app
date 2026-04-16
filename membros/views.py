@@ -64,7 +64,10 @@ MODAL_SECAO_SHELL = 'membros/partials/detalhe/_modal_secao_editar.html'
 
 
 def _membro_queryset():
-    return Membro.objects.select_related('casado_com').prefetch_related('filhos')
+    return (
+        Membro.objects.select_related('casado_com', 'pai', 'mae')
+        .prefetch_related('filhos')
+    )
 
 
 def _get_membro(pk):
