@@ -34,11 +34,17 @@ nav.app-sidebar {
 }
 
 @media (min-width: 992px) {
+  /*
+   * Esticar na coluna do flex (não usar align-self: flex-start + height: 100vh):
+   * quando o conteúdo principal é mais alto que a viewport, a sidebar acompanha
+   * a altura da linha e o fundo escuro cobre até ao fundo (sem faixa clara).
+   */
   nav.app-sidebar {
     position: sticky;
     top: 0;
-    align-self: flex-start;
-    height: 100vh;
+    align-self: stretch;
+    min-height: 100vh;
+    height: auto;
     width: var(--app-sidebar-w);
     max-width: 100%;
     border-right: 1px solid var(--app-sidebar-border);

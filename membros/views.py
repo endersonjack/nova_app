@@ -2,7 +2,6 @@ import json
 from urllib.parse import urlencode
 
 from django.contrib import messages
-from django.contrib.auth.decorators import login_required
 from django.core.paginator import Paginator
 from django.db.models import F, Q
 from django.http import Http404, HttpResponse
@@ -21,6 +20,9 @@ from .forms import (
     MembroMinisteriosForm,
     MembroNovoForm,
 )
+from usuarios.familia import membros_visiveis_queryset
+from usuarios.permissions import requer_modulo
+
 from .models import EstadoCivil, Membro
 
 LISTA_PER_PAGE = 30
@@ -94,9 +96,10 @@ SECAO_CONFIG = {
 MODAL_SECAO_SHELL = 'membros/partials/detalhe/_modal_secao_editar.html'
 
 
-def _membro_queryset():
+def _membro_queryset(request):
     return (
-        Membro.objects.select_related(
+        membros_visiveis_queryset(request.user)
+        .select_related(
             'casado_com',
             'pai',
             'mae',
@@ -107,8 +110,8 @@ def _membro_queryset():
     )
 
 
-def _get_membro(pk):
-    return get_object_or_404(_membro_queryset(), pk=pk)
+def _get_membro(request, pk):
+    return get_object_or_404(_membro_queryset(request), pk=pk)
 
 
 def _hx_redirect(url: str) -> HttpResponse:
@@ -129,23 +132,23 @@ def _hx_response_ok_lista() -> HttpResponse:
     return r
 
 
-def _filhos_labels_from_post(post):
+def _filhos_labels_from_post(request, post):
     ids = [int(x) for x in post.getlist('filhos') if str(x).isdigit()]
     if not ids:
         return []
-    membros = Membro.objects.filter(pk__in=ids)
+    membros = membros_visiveis_queryset(request.user).filter(pk__in=ids)
     by_id = {m.pk: str(m) for m in membros}
     return [{'id': i, 'label': by_id.get(i, '')} for i in ids if i in by_id]
 
 
-def _familia_context(membro, post=None):
+def _familia_context(request, membro, post=None):
     ctx = {
         'filhos_iniciais': [],
     }
     if membro.pk:
         ctx['filhos_iniciais'] = [{'id': f.pk, 'label': str(f)} for f in membro.filhos.all()]
     if post is not None:
-        fl = _filhos_labels_from_post(post)
+        fl = _filhos_labels_from_post(request, post)
         if fl:
             ctx['filhos_iniciais'] = fl
     return ctx
@@ -161,7 +164,7 @@ def _familia_conjuge_enabled(membro, form=None, post=None) -> bool:
     return est == EstadoCivil.CASADO.value
 
 
-def _build_secao_ctx(membro, slug, form=None, post=None, with_form=False):
+def _build_secao_ctx(request, membro, slug, form=None, post=None, with_form=False):
     cfg = SECAO_CONFIG[slug]
     ctx = {
         'membro': membro,
@@ -173,25 +176,33 @@ def _build_secao_ctx(membro, slug, form=None, post=None, with_form=False):
     if form is not None:
         ctx['form'] = form
     elif with_form:
-        ctx['form'] = cfg['form_class'](instance=membro)
+        form_cls = cfg['form_class']
+        if form_cls is MembroFamiliaForm:
+            ctx['form'] = form_cls(
+                instance=membro,
+                membros_scope_qs=membros_visiveis_queryset(request.user),
+            )
+        else:
+            ctx['form'] = form_cls(instance=membro)
     if slug == 'familia':
-        ctx.update(_familia_context(membro, post))
+        ctx.update(_familia_context(request, membro, post))
         ctx['familia_conjuge_enabled'] = _familia_conjuge_enabled(
             membro, form=ctx.get('form'), post=post
         )
     return ctx
 
 
-@login_required
+@requer_modulo('membros', edicao=False)
 def index(request):
     return render(request, 'membros/index.html')
 
 
-@login_required
+@requer_modulo('membros', edicao=False)
 @require_http_methods(['GET'])
 def mapa_membros(request):
     qs = (
-        Membro.objects.filter(latitude__isnull=False, longitude__isnull=False)
+        membros_visiveis_queryset(request.user)
+        .filter(latitude__isnull=False, longitude__isnull=False)
         .only('pk', 'nome_completo', 'nome_conhecido', 'foto', 'latitude', 'longitude')
         .order_by('nome_completo')
     )
@@ -214,7 +225,7 @@ def mapa_membros(request):
     )
 
 
-@login_required
+@requer_modulo('membros', edicao=False)
 @require_http_methods(['GET'])
 def lista_partial(request):
     q = (request.GET.get('q') or '').strip()
@@ -225,7 +236,7 @@ def lista_partial(request):
     if dir_ not in ('asc', 'desc'):
         dir_ = 'asc'
 
-    qs = Membro.objects.select_related('casado_com')
+    qs = membros_visiveis_queryset(request.user).select_related('casado_com')
     if q:
         qs = qs.filter(
             Q(nome_completo__icontains=q) | Q(nome_conhecido__icontains=q),
@@ -300,12 +311,12 @@ def lista_partial(request):
     return render(request, 'membros/partials/_lista.html', ctx)
 
 
-@login_required
+@requer_modulo('membros', edicao=False)
 @require_http_methods(['GET'])
 def autocomplete(request):
     q = request.GET.get('q', '').strip()
     exclude = request.GET.get('exclude', '').strip()
-    qs = Membro.objects.all().order_by('nome_completo')
+    qs = membros_visiveis_queryset(request.user).order_by('nome_completo')
     if exclude.isdigit():
         qs = qs.exclude(pk=int(exclude))
     sexo_conjuge = request.GET.get('sexo_conjuge', '').strip().upper()
@@ -326,7 +337,7 @@ def autocomplete(request):
     )
 
 
-@login_required
+@requer_modulo('membros', edicao=True)
 @require_http_methods(['GET'])
 def modal_create(request):
     form = MembroNovoForm()
@@ -341,7 +352,7 @@ def modal_create(request):
     )
 
 
-@login_required
+@requer_modulo('membros', edicao=True)
 @require_http_methods(['POST'])
 def membro_create(request):
     form = MembroNovoForm(request.POST)
@@ -360,13 +371,13 @@ def membro_create(request):
     )
 
 
-@login_required
+@requer_modulo('membros', edicao=False)
 @require_http_methods(['GET'])
 def membro_detalhe(request, pk):
-    membro = _get_membro(pk)
+    membro = _get_membro(request, pk)
     secao_ativa = 'dados-pessoais'
     cfg = SECAO_CONFIG[secao_ativa]
-    ctx = _build_secao_ctx(membro, secao_ativa)
+    ctx = _build_secao_ctx(request, membro, secao_ativa)
     return render(
         request,
         'membros/membro_detalhe.html',
@@ -379,45 +390,49 @@ def membro_detalhe(request, pk):
     )
 
 
-@login_required
+@requer_modulo('membros', edicao=False)
 @require_http_methods(['GET'])
 def membro_secao(request, pk, slug):
     if slug not in SECAO_CONFIG:
         raise Http404()
-    membro = _get_membro(pk)
+    membro = _get_membro(request, pk)
     cfg = SECAO_CONFIG[slug]
-    ctx = _build_secao_ctx(membro, slug)
+    ctx = _build_secao_ctx(request, membro, slug)
     ctx['section_partial'] = cfg['display_template']
     return render(request, 'membros/partials/detalhe/_secao_swap_shell.html', ctx)
 
 
-@login_required
+@requer_modulo('membros', edicao=True)
 @require_http_methods(['GET'])
 def membro_secao_modal(request, pk, slug):
     if slug not in SECAO_CONFIG:
         raise Http404()
-    membro = _get_membro(pk)
-    ctx = _build_secao_ctx(membro, slug, with_form=True)
+    membro = _get_membro(request, pk)
+    ctx = _build_secao_ctx(request, membro, slug, with_form=True)
     return render(request, MODAL_SECAO_SHELL, ctx)
 
 
-@login_required
+@requer_modulo('membros', edicao=True)
 @require_http_methods(['POST'])
 def membro_secao_salvar(request, pk, slug):
     if slug not in SECAO_CONFIG:
         raise Http404()
-    membro = _get_membro(pk)
+    membro = _get_membro(request, pk)
     cfg = SECAO_CONFIG[slug]
     form_class = cfg['form_class']
+    form_kw = {}
+    if form_class is MembroFamiliaForm:
+        form_kw['membros_scope_qs'] = membros_visiveis_queryset(request.user)
     form = form_class(
         request.POST,
         request.FILES if slug == 'dados-pessoais' else None,
         instance=membro,
+        **form_kw,
     )
     if form.is_valid():
         form.save()
-        membro = _get_membro(pk)
-        ctx = _build_secao_ctx(membro, slug)
+        membro = _get_membro(request, pk)
+        ctx = _build_secao_ctx(request, membro, slug)
         ctx['section_partial'] = cfg['display_template']
         response = render(
             request,
@@ -438,14 +453,14 @@ def membro_secao_salvar(request, pk, slug):
             }
         )
         return response
-    ctx = _build_secao_ctx(membro, slug, form=form, post=request.POST)
+    ctx = _build_secao_ctx(request, membro, slug, form=form, post=request.POST)
     return render(request, MODAL_SECAO_SHELL, ctx, status=422)
 
 
-@login_required
+@requer_modulo('membros', edicao=True)
 @require_http_methods(['GET'])
 def modal_delete_confirm(request, pk):
-    membro = get_object_or_404(Membro, pk=pk)
+    membro = get_object_or_404(_membro_queryset(request), pk=pk)
     return render(
         request,
         'membros/partials/_modal_delete_confirm.html',
@@ -453,10 +468,11 @@ def modal_delete_confirm(request, pk):
     )
 
 
-@login_required
+@requer_modulo('membros', edicao=True)
 @require_http_methods(['POST'])
 def membro_delete(request, pk):
-    membro = get_object_or_404(Membro, pk=pk)
-    membro.delete()
-    messages.success(request, _('Membro excluído com sucesso.'))
+    membro = get_object_or_404(_membro_queryset(request), pk=pk)
+    membro.ativo = False
+    membro.save(update_fields=['ativo'])
+    messages.success(request, _('Membro inativado. Deixou de aparecer nas listagens e pesquisas.'))
     return _hx_redirect(reverse('membros:membros_index'))

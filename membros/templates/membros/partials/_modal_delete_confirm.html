@@ -3,7 +3,8 @@
   <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
 </div>
 <div class="modal-body">
-  <p class="mb-0">Confirma a exclusão de <strong>{{ membro.nome_completo }}</strong>? Esta ação não pode ser desfeita.</p>
+  <p class="mb-2">Confirma a exclusão de <strong>{{ membro.nome_completo }}</strong> do cadastro <strong>ativo</strong>?</p>
+  <p class="text-muted small mb-0">O registo <strong>não é apagado</strong>: fica inativo e deixa de aparecer em listas e pesquisas. Pode voltar a ser reativado no Admin.</p>
   <form method="post"
         action="{% url 'membros:delete' membro.pk %}"
         class="d-flex flex-wrap gap-2 justify-content-end mt-4"
@@ -15,6 +16,6 @@
     <button type="button" class="btn btn-app btn-app-secondary" data-bs-dismiss="modal">
       Cancelar
     </button>
-    <button type="submit" class="btn btn-app btn-app-danger px-4">Excluir definitivamente</button>
+    <button type="submit" class="btn btn-app btn-app-danger px-4">Excluir (inativar)</button>
   </form>
 </div>

@@ -49,6 +49,7 @@ urlpatterns = [
     ),
     path('', include('dashboard.urls')),
     path('membros/', include('membros.urls')),
+    path('auditoria/', include('auditoria.urls', namespace='auditoria')),
 ]
 
 # `static()` do Django só registra URLs quando DEBUG=True; em produção retorna [].

@@ -10,7 +10,14 @@
 
 {% block content %}
 <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-  <p class="text-muted mb-0">Cadastro de membros da igreja.</p>
+  <p class="text-muted mb-0">
+    {% if membro_comum_somente_familia %}
+      Só vê os membros da sua família (vínculo do seu utilizador, cônjuge, filhos e pais cadastrados).
+    {% else %}
+      Cadastro de membros da igreja.
+    {% endif %}
+  </p>
+  {% if acesso_modulos.membros.editar %}
   <button type="button"
           class="btn btn-app btn-app-primary px-4 position-relative"
           hx-get="{% url 'membros:modal_create' %}"
@@ -20,6 +27,7 @@
     <span id="btn-novo-membro-ind" class="htmx-indicator spinner-border spinner-border-sm me-1" role="status"></span>
     <i class="bi bi-person-plus me-1"></i> Novo membro
   </button>
+  {% endif %}
 </div>
 
 <div class="position-relative">

@@ -2,6 +2,11 @@
 {% load static %}
 {% block title %}Estatística{% endblock %}
 {% block page_title %}Estatística{% endblock %}
+{% block page_subtitle %}
+  {% if estatistica_escopo_familia %}
+    <p class="text-muted small mb-0">Estatísticas da sua família.</p>
+  {% endif %}
+{% endblock %}
 
 {% block content %}
 <div class="position-relative">

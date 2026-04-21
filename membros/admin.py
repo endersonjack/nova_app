@@ -23,6 +23,7 @@ class TamanhoCamisaAdmin(admin.ModelAdmin):
 class MembroAdmin(admin.ModelAdmin):
     form = MembroAdminForm
     list_display = (
+        'ativo',
         'nome_completo',
         'nome_conhecido',
         'cpf_formatado_list',
@@ -30,7 +31,7 @@ class MembroAdmin(admin.ModelAdmin):
         'telefone_formatado_list',
         'batizado',
     )
-    list_filter = ('sexo', 'estado_civil', 'batizado', 'locomocao', 'tamanho_camisa')
+    list_filter = ('ativo', 'sexo', 'estado_civil', 'batizado', 'locomocao', 'tamanho_camisa')
     search_fields = ('nome_completo', 'nome_conhecido', 'email', 'cpf', 'telefone')
     autocomplete_fields = ('casado_com', 'pai', 'mae', 'locomocao', 'tamanho_camisa')
     filter_horizontal = ('filhos',)
@@ -40,11 +41,30 @@ class MembroAdmin(admin.ModelAdmin):
         'usuario_login_display',
     )
 
+    def get_queryset(self, request):
+        return Membro.todos.select_related(
+            'casado_com',
+            'pai',
+            'mae',
+            'locomocao',
+            'tamanho_camisa',
+        )
+
+    def delete_model(self, request, obj):
+        obj.ativo = False
+        obj.save(update_fields=['ativo'])
+
+    def delete_queryset(self, request, queryset):
+        for obj in queryset:
+            obj.ativo = False
+            obj.save(update_fields=['ativo'])
+
     fieldsets = (
         (
             None,
             {
                 'fields': (
+                    'ativo',
                     'nome_completo',
                     'nome_conhecido',
                     'cpf',

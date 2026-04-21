@@ -1,8 +1,13 @@
 <div class="row g-4 align-items-stretch">
+  {% if estatistica_escopo_familia %}
+  <div class="col-12">
+    <p class="text-muted small mb-0">Os gráficos consideram apenas os membros ativos da sua família.</p>
+  </div>
+  {% endif %}
   <div class="col-sm-6 col-lg-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
-        <h2 class="h6 fw-bold text-dark mb-3">Membros por sexo</h2>
+        <h2 class="h6 fw-bold text-dark mb-3">{% if estatistica_escopo_familia %}Família — por sexo{% else %}Membros por sexo{% endif %}</h2>
         {% if total_membros %}
           <div class="dashboard-pie-wrap mx-auto" style="max-width: 280px;">
             <canvas id="dashboardChartSexo"
@@ -21,7 +26,7 @@
   <div class="col-sm-6 col-lg-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
-        <h2 class="h6 fw-bold text-dark mb-3">Por faixa etária</h2>
+        <h2 class="h6 fw-bold text-dark mb-3">{% if estatistica_escopo_familia %}Família — faixa etária{% else %}Por faixa etária{% endif %}</h2>
         {% if total_membros %}
           {% if idade_chart_payload.labels %}
             {{ idade_chart_payload|json_script:"dashboard-idade-data" }}
@@ -43,7 +48,7 @@
   <div class="col-sm-12 col-lg-4">
     <div class="card border-0 shadow-sm h-100">
       <div class="card-body">
-        <h2 class="h6 fw-bold text-dark mb-3">Locomoção</h2>
+        <h2 class="h6 fw-bold text-dark mb-3">{% if estatistica_escopo_familia %}Família — locomoção{% else %}Locomoção{% endif %}</h2>
         {% if total_membros %}
           {% if locomocao_chart_payload.labels %}
             {{ locomocao_chart_payload|json_script:"dashboard-locomocao-data" }}

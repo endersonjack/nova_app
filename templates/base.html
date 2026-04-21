@@ -57,6 +57,7 @@
               <span class="sidebar-link-text">Início</span>
             </a>
           </li>
+          {% if acesso_modulos.membros.ver %}
           <li class="nav-item">
             <a class="nav-link {% if request.resolver_match and request.resolver_match.namespace == 'membros' and request.resolver_match.url_name == 'membros_index' %}active{% endif %}"
                href="{% url 'membros:membros_index' %}"
@@ -73,6 +74,41 @@
               <span class="sidebar-link-text">Mapa de Membros</span>
             </a>
           </li>
+          {% endif %}
+          {% if acesso_modulos.tesouraria.ver %}
+          <li class="nav-item">
+            <span class="nav-link text-white text-opacity-50 pe-none" title="Em breve">
+              <i class="bi bi-cash-stack fs-5"></i>
+              <span class="sidebar-link-text">Tesouraria</span>
+            </span>
+          </li>
+          {% endif %}
+          {% if acesso_modulos.visitantes.ver %}
+          <li class="nav-item">
+            <span class="nav-link text-white text-opacity-50 pe-none" title="Em breve">
+              <i class="bi bi-door-open fs-5"></i>
+              <span class="sidebar-link-text">Visitantes</span>
+            </span>
+          </li>
+          {% endif %}
+          {% if acesso_modulos.seminario.ver %}
+          <li class="nav-item">
+            <span class="nav-link text-white text-opacity-50 pe-none" title="Em breve">
+              <i class="bi bi-journal-text fs-5"></i>
+              <span class="sidebar-link-text">Seminário</span>
+            </span>
+          </li>
+          {% endif %}
+          {% if acesso_modulos.auditoria.ver %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.namespace == 'auditoria' %}active{% endif %}"
+               href="{% url 'auditoria:index' %}"
+               title="Auditoria">
+              <i class="bi bi-clipboard-check fs-5"></i>
+              <span class="sidebar-link-text">Auditoria</span>
+            </a>
+          </li>
+          {% endif %}
           <li class="nav-item">
             <a class="nav-link {% if request.resolver_match and request.resolver_match.url_name == 'dashboard_estatistica' %}active{% endif %}"
                href="{% url 'dashboard_estatistica' %}"
@@ -84,12 +120,14 @@
         </ul>
         <div class="sidebar-footer-account mt-4 pt-3 border-top border-light border-opacity-25">
           {% if user.is_authenticated %}
+            {% if pode_acesso_django_admin %}
             <a class="sidebar-footer-link d-flex align-items-center gap-2 text-white text-decoration-none py-2 rounded-3 px-2"
                href="{% url 'admin:index' %}">
               <i class="bi bi-gear fs-5 flex-shrink-0"></i>
               <span class="sidebar-footer-label">Administração</span>
             </a>
-            <form method="post" action="{% url 'logout' %}" class="mt-1">
+            {% endif %}
+            <form method="post" action="{% url 'logout' %}" class="{% if pode_acesso_django_admin %}mt-1{% endif %}">
               {% csrf_token %}
               <button type="submit" class="sidebar-footer-link btn btn-link text-start text-danger text-decoration-none w-100 d-flex align-items-center gap-2 py-2 px-2 rounded-3 border-0">
                 <i class="bi bi-box-arrow-right fs-5 flex-shrink-0"></i>

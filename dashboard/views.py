@@ -7,6 +7,11 @@ from django.db.models.functions import ExtractDay
 from django.shortcuts import render
 
 from membros.models import Membro, Sexo
+from usuarios.familia import (
+    membros_visiveis_queryset,
+    perfil_membro_comum_restrito,
+    pks_familia_membro,
+)
 
 LOCOMOCAO_CORES = (
     '#2563eb',
@@ -108,11 +113,11 @@ def _idade_chart_payload(contagem: Counter) -> dict:
     return {'labels': labels, 'counts': counts, 'colors': colors}
 
 
-def _locomocao_chart_payload() -> dict:
+def _locomocao_chart_payload(qs):
     labels = []
     counts = []
     rows = (
-        Membro.objects.exclude(locomocao__isnull=True)
+        qs.exclude(locomocao__isnull=True)
         .values('locomocao__descricao')
         .annotate(n=Count('pk'))
         .order_by('-n', 'locomocao__descricao')
@@ -123,7 +128,7 @@ def _locomocao_chart_payload() -> dict:
         if desc and n > 0:
             labels.append(desc)
             counts.append(n)
-    sem = Membro.objects.filter(locomocao__isnull=True).count()
+    sem = qs.filter(locomocao__isnull=True).count()
     if sem > 0:
         labels.append('Não informado')
         counts.append(sem)
@@ -133,15 +138,17 @@ def _locomocao_chart_payload() -> dict:
     return {'labels': labels, 'counts': counts, 'colors': colors}
 
 
-def _chart_context():
-    total = Membro.objects.count()
-    masculino = Membro.objects.filter(sexo=Sexo.MASCULINO).count()
-    feminino = Membro.objects.filter(sexo=Sexo.FEMININO).count()
+def _chart_context(qs=None):
+    if qs is None:
+        qs = Membro.objects.all()
+    total = qs.count()
+    masculino = qs.filter(sexo=Sexo.MASCULINO).count()
+    feminino = qs.filter(sexo=Sexo.FEMININO).count()
     contagem_idade = Counter()
-    for dn in Membro.objects.values_list('data_nascimento', flat=True):
+    for dn in qs.values_list('data_nascimento', flat=True):
         contagem_idade[_idade_faixa_chave(dn)] += 1
     idade_chart_payload = _idade_chart_payload(contagem_idade)
-    locomocao_chart_payload = _locomocao_chart_payload()
+    locomocao_chart_payload = _locomocao_chart_payload(qs)
     return {
         'total_membros': total,
         'membros_masculino': masculino,
@@ -160,31 +167,52 @@ def index(request):
 def inicio_conteudo(request):
     hoje = date.today()
     mes_label = f'{_MESES_PT[hoje.month]} de {hoje.year}'
+    comum = perfil_membro_comum_restrito(request.user)
+    qs = membros_visiveis_queryset(request.user)
+    # Aniversariantes: todos os membros ativos (não só o âmbito «família» do papel comum).
     aniversariantes = (
         Membro.objects.filter(data_nascimento__month=hoje.month)
         .annotate(dia_aniv=ExtractDay('data_nascimento'))
         .order_by('dia_aniv', 'nome_completo')
     )
+    familia_pks: list[int] = []
+    if comum:
+        perfil = getattr(request.user, 'perfil', None)
+        if perfil and perfil.membro_id and perfil.membro:
+            familia_pks = list(pks_familia_membro(perfil.membro))
+    ctx = {
+        'total_membros': qs.count(),
+        'mes_label': mes_label,
+        'aniversariantes': aniversariantes,
+        'dashboard_comum_somente_pessoal': comum,
+        'inicio_sem_vinculo_membro': comum and not qs.exists(),
+        'familia_pks': familia_pks,
+    }
     return render(
         request,
         'dashboard/partials/_inicio_conteudo.html',
-        {
-            'total_membros': Membro.objects.count(),
-            'mes_label': mes_label,
-            'aniversariantes': aniversariantes,
-        },
+        ctx,
     )
 
 
 @login_required
 def estatistica_index(request):
-    return render(request, 'dashboard/estatistica.html')
+    comum = perfil_membro_comum_restrito(request.user)
+    return render(
+        request,
+        'dashboard/estatistica.html',
+        {'estatistica_escopo_familia': comum},
+    )
 
 
 @login_required
 def estatistica_conteudo(request):
+    comum = perfil_membro_comum_restrito(request.user)
+    qs = membros_visiveis_queryset(request.user) if comum else Membro.objects.all()
+    ctx = _chart_context(qs)
+    ctx['estatistica_escopo_familia'] = comum
     return render(
         request,
         'dashboard/partials/_estatistica_conteudo.html',
-        _chart_context(),
+        ctx,
     )

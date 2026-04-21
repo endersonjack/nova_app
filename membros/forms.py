@@ -283,11 +283,11 @@ class MembroLocalidadeForm(forms.ModelForm):
                 'longitude': obj.longitude,
             }
             if self.cleaned_data.get('espelhar_endereco_conjuge') and obj.casado_com_id:
-                Membro.objects.filter(pk=obj.casado_com_id).update(**payload)
+                Membro.todos.filter(pk=obj.casado_com_id).update(**payload)
             if self.cleaned_data.get('espelhar_endereco_filhos'):
                 ids = list(obj.filhos.values_list('pk', flat=True))
                 if ids:
-                    Membro.objects.filter(pk__in=ids).update(**payload)
+                    Membro.todos.filter(pk__in=ids).update(**payload)
         return obj
 
 
@@ -299,7 +299,10 @@ class MembroFamiliaForm(forms.ModelForm):
             'data_casamento': forms.DateInput(attrs={'type': 'date'}),
         }
 
-    def __init__(self, *args, **kwargs):
+    def __init__(self, *args, membros_scope_qs=None, **kwargs):
+        self._membros_scope_qs = (
+            membros_scope_qs if membros_scope_qs is not None else Membro.objects.all()
+        )
         super().__init__(*args, **kwargs)
         _configure_html5_date_inputs(self, 'data_casamento')
         self.fields['casado_com'].required = False
@@ -328,7 +331,7 @@ class MembroFamiliaForm(forms.ModelForm):
         if not conjuge_ok:
             self.fields['adicionar_filhos_conjuge'].widget.attrs['disabled'] = True
         if self.instance.pk:
-            q = Membro.objects.exclude(pk=self.instance.pk).order_by(
+            q = self._membros_scope_qs.exclude(pk=self.instance.pk).order_by(
                 'nome_completo',
             )
             # Comparar com .value: `instance.sexo in (Sexo.MASCULINO, …)` pode falhar com TextChoices.
@@ -338,12 +341,12 @@ class MembroFamiliaForm(forms.ModelForm):
             elif sx == Sexo.FEMININO.value:
                 q = q.filter(sexo__iexact=Sexo.MASCULINO.value)
             self.fields['casado_com'].queryset = q
-            self.filhos_choice_queryset = Membro.objects.exclude(
+            self.filhos_choice_queryset = self._membros_scope_qs.exclude(
                 pk=self.instance.pk,
             ).order_by('nome_completo')
         else:
-            self.fields['casado_com'].queryset = Membro.objects.all()
-            self.filhos_choice_queryset = Membro.objects.all().order_by(
+            self.fields['casado_com'].queryset = self._membros_scope_qs
+            self.filhos_choice_queryset = self._membros_scope_qs.order_by(
                 'nome_completo',
             )
         _widget_classes_membro_public(
@@ -366,7 +369,7 @@ class MembroFamiliaForm(forms.ModelForm):
             raise forms.ValidationError(
                 _('Não é possível repetir o mesmo filho na lista.'),
             )
-        qs = Membro.objects.filter(pk__in=ids)
+        qs = self._membros_scope_qs.filter(pk__in=ids)
         if inst.pk:
             qs = qs.exclude(pk=inst.pk)
         if inst.pk and inst.pk in ids:
@@ -430,7 +433,7 @@ class MembroFamiliaForm(forms.ModelForm):
             obj.filhos.set(filhos_qs if filhos_qs is not None else [])
             obj.sincronizar_papel_parental_filhos(old_main, new_ids)
             if self.cleaned_data.get('adicionar_filhos_conjuge') and obj.casado_com_id:
-                esp = Membro.objects.get(pk=obj.casado_com_id)
+                esp = Membro.todos.get(pk=obj.casado_com_id)
                 old_esp = set(esp.filhos.values_list('pk', flat=True))
                 esp.filhos.set(filhos_qs if filhos_qs is not None else [])
                 esp.sincronizar_papel_parental_filhos(old_esp, new_ids)

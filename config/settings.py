@@ -114,6 +114,7 @@ INSTALLED_APPS = [
     'usuarios',
     'dashboard',
     'membros',
+    'auditoria',
     'django_htmx',
 ]
 
@@ -124,6 +125,7 @@ MIDDLEWARE = [
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
+    'auditoria.middleware.AuditoriaUsuarioMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django_htmx.middleware.HtmxMiddleware',

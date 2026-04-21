@@ -1,0 +1,92 @@
+{% extends "base.html" %}
+{% block title %}Auditoria{% endblock %}
+{% block page_title %}Auditoria{% endblock %}
+{% block page_subtitle %}<p class="text-muted small mb-0">Registo de alterações nos módulos (por agora: Membros).</p>{% endblock %}
+
+{% block content %}
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-0">
+    <form method="get" class="row g-2 align-items-end p-3 pb-0 border-bottom bg-light bg-opacity-50">
+      <div class="col-auto">
+        <label class="form-label small text-muted mb-0" for="filtro-modulo">Módulo</label>
+        <select name="modulo" id="filtro-modulo" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          <option value="membros" {% if filtro_modulo == 'membros' %}selected{% endif %}>Membros</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="form-label small text-muted mb-0" for="filtro-tipo">Tipo</label>
+        <select name="tipo" id="filtro-tipo" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          {% for val, label in tipos %}
+            <option value="{{ val }}" {% if filtro_tipo == val %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="form-label small text-muted mb-0" for="filtro-usuario">Utilizador</label>
+        <select name="usuario" id="filtro-usuario" class="form-select form-select-sm">
+          <option value="">Todos</option>
+          {% if tem_registo_sistema %}
+            <option value="0" {% if filtro_usuario == '0' %}selected{% endif %}>Sistema</option>
+          {% endif %}
+          {% for u in usuarios_com_logs %}
+            <option value="{{ u.pk }}" {% if filtro_usuario == u.pk|stringformat:"d" %}selected{% endif %}>{{ u.get_username }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-auto">
+        <button type="submit" class="btn btn-app btn-app-primary btn-sm">Filtrar</button>
+      </div>
+    </form>
+
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0 small">
+        <thead class="table-light">
+          <tr>
+            <th scope="col" class="text-nowrap">Data / hora</th>
+            <th scope="col">Utilizador</th>
+            <th scope="col">Tipo</th>
+            <th scope="col">Módulo</th>
+            <th scope="col">Detalhes</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in rows %}
+            {% with log=row.log %}
+            <tr>
+              <td class="text-nowrap text-muted">{{ log.criado_em|date:"d/m/Y H:i:s" }}</td>
+              <td>{% if log.usuario %}{{ log.usuario.get_username }}{% else %}<span class="text-muted">Sistema</span>{% endif %}</td>
+              <td><span class="badge text-bg-{{ row.tipo_badge }}">{{ log.get_tipo_display }}</span></td>
+              <td><span class="badge text-bg-secondary">{{ log.modulo }}</span></td>
+              <td class="text-break">{{ log.detalhes }}</td>
+            </tr>
+            {% endwith %}
+          {% empty %}
+            <tr>
+              <td colspan="5" class="text-center text-muted py-5">Nenhum registo encontrado.</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+
+    {% if page_obj.paginator.num_pages > 1 %}
+    <nav class="p-3 border-top d-flex justify-content-between align-items-center flex-wrap gap-2" aria-label="Paginação">
+      <span class="text-muted small">
+        Página {{ page_obj.number }} de {{ page_obj.paginator.num_pages }}
+        ({{ page_obj.paginator.count }} registo{% if page_obj.paginator.count != 1 %}s{% endif %})
+      </span>
+      <ul class="pagination pagination-sm mb-0">
+        {% if page_obj.has_previous %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if filtro_modulo %}&modulo={{ filtro_modulo }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_usuario %}&usuario={{ filtro_usuario }}{% endif %}">Anterior</a></li>
+        {% endif %}
+        {% if page_obj.has_next %}
+          <li class="page-item"><a class="page-link" href="?page={{ page_obj.next_page_number }}{% if filtro_modulo %}&modulo={{ filtro_modulo }}{% endif %}{% if filtro_tipo %}&tipo={{ filtro_tipo }}{% endif %}{% if filtro_usuario %}&usuario={{ filtro_usuario }}{% endif %}">Seguinte</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

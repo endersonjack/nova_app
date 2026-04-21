@@ -32,6 +32,7 @@
         <a href="{% url 'membros:membros_index' %}" class="btn btn-app btn-app-secondary btn-sm" title="Voltar à lista">
           <i class="bi bi-arrow-left me-1"></i> Voltar
         </a>
+        {% if acesso_modulos.membros.editar %}
         <div class="dropdown">
           <button type="button"
                   class="btn btn-app btn-app-secondary btn-sm px-2"
@@ -53,6 +54,7 @@
             </li>
           </ul>
         </div>
+        {% endif %}
       </div>
     </div>
   </div>

@@ -139,7 +139,23 @@ class TamanhoCamisa(models.Model):
         return self.descricao
 
 
+class MembroAtivosManager(models.Manager):
+    """Listagens e pesquisas usam só membros com `ativo=True`."""
+
+    def get_queryset(self):
+        return super().get_queryset().filter(ativo=True)
+
+
 class Membro(models.Model):
+    ativo = models.BooleanField(
+        _('Ativo no cadastro'),
+        default=True,
+        db_index=True,
+        help_text=_(
+            'Se desmarcado, o membro deixa de aparecer em listas e pesquisas '
+            'na aplicação; o registo permanece na base de dados.'
+        ),
+    )
     nome_completo = models.CharField(_('Nome completo'), max_length=255)
     nome_conhecido = models.CharField(_('Conhecido por:'), max_length=120, blank=True)
     cpf = models.CharField(
@@ -263,6 +279,9 @@ class Membro(models.Model):
         blank=True,
     )
 
+    objects = MembroAtivosManager()
+    todos = models.Manager()
+
     class Meta:
         verbose_name = _('Membro')
         verbose_name_plural = _('Membros')
@@ -279,14 +298,14 @@ class Membro(models.Model):
         removed = old_ids - new_ids
         for cid in removed:
             if sx == Sexo.MASCULINO.value:
-                Membro.objects.filter(pk=cid, pai_id=self.pk).update(pai_id=None)
+                Membro.todos.filter(pk=cid, pai_id=self.pk).update(pai_id=None)
             elif sx == Sexo.FEMININO.value:
-                Membro.objects.filter(pk=cid, mae_id=self.pk).update(mae_id=None)
+                Membro.todos.filter(pk=cid, mae_id=self.pk).update(mae_id=None)
         for cid in new_ids:
             if sx == Sexo.MASCULINO.value:
-                Membro.objects.filter(pk=cid).update(pai_id=self.pk)
+                Membro.todos.filter(pk=cid).update(pai_id=self.pk)
             elif sx == Sexo.FEMININO.value:
-                Membro.objects.filter(pk=cid).update(mae_id=self.pk)
+                Membro.todos.filter(pk=cid).update(mae_id=self.pk)
 
     def _sync_maps_coordinates(self) -> None:
         raw = (self.maps_embed or '').strip()
@@ -323,7 +342,7 @@ class Membro(models.Model):
         old_partner_id = None
         if spouse_fields_dirty and self.pk:
             old_partner_id = (
-                Membro.objects.filter(pk=self.pk)
+                Membro.todos.filter(pk=self.pk)
                 .values_list('casado_com_id', flat=True)
                 .first()
             )
@@ -339,25 +358,25 @@ class Membro(models.Model):
         if old_partner_id and (
             old_partner_id != new_pid or not union_ok
         ):
-            Membro.objects.filter(pk=old_partner_id, casado_com_id=self.pk).update(
+            Membro.todos.filter(pk=old_partner_id, casado_com_id=self.pk).update(
                 casado_com=None,
                 estado_civil='',
                 data_casamento=None,
             )
 
         if union_ok and new_pid:
-            Membro.objects.filter(casado_com_id=new_pid).exclude(pk=self.pk).update(
+            Membro.todos.filter(casado_com_id=new_pid).exclude(pk=self.pk).update(
                 casado_com=None,
                 estado_civil='',
                 data_casamento=None,
             )
-            Membro.objects.filter(pk=new_pid).exclude(pk=self.pk).update(
+            Membro.todos.filter(pk=new_pid).exclude(pk=self.pk).update(
                 casado_com_id=self.pk,
                 estado_civil=self.estado_civil,
                 data_casamento=self.data_casamento,
             )
         elif new_pid and not union_ok:
-            Membro.objects.filter(pk=new_pid, casado_com_id=self.pk).update(
+            Membro.todos.filter(pk=new_pid, casado_com_id=self.pk).update(
                 casado_com=None,
             )
 

@@ -1,0 +1,25 @@
+---
+description: Registar auditoria detalhada em modais, views e alterações de dados
+globs: "**/views.py,**/signals*.py,**/templates/**/*.html,**/partials/**/*.html"
+alwaysApply: false
+---
+
+# Auditoria detalhada
+
+## Obrigatório
+
+- **Novas views** que criem, alterem ou apaguem dados de negócio (formulários, HTMX, modais, ações POST) devem deixar **rasto em auditoria** com mensagens em português, no formato: quem fez, o quê, valores antigos → novos quando fizer sentido.
+- **Novos modais** que submetam alterações devem garantir o mesmo: o fluxo que persiste dados é o que tem de disparar o registo (via sinal no modelo ou chamada explícita a `auditoria.services.registrar_auditoria`).
+
+## Como implementar
+
+1. **Preferir sinais** (`pre_save` / `post_save` / `post_delete` / `m2m_changed`) no modelo, como em `auditoria/signals_membro.py`, para não esquecer nenhum caminho (admin Django, shell, API futura). O utilizador da request vem de `auditoria.middleware.AuditoriaUsuarioMiddleware` → `get_auditoria_usuario()`.
+2. **Operações que não passam por `save()`** (ex.: `QuerySet.update`) não disparam sinais: nesse caso chamar explicitamente `registrar_auditoria(...)` no código que executa a alteração.
+3. **Tipos** (`TipoRegistoAuditoria`): usar `criacao`, `remocao`, `edicao` (ex.: relações M2M ou edição estrutural), `alteracao` (diff de campos escalares), com `modulo` igual ao código do módulo (`membros`, `tesouraria`, …).
+4. O campo **`detalhes`** deve ser texto legível para não técnicos (frases completas, nomes de pessoas/registos, datas formatadas `dd/mm/aaaa`).
+
+## Referência no projeto
+
+- Modelo: `auditoria.models.LogAuditoria`
+- API: `auditoria.services.registrar_auditoria`
+- Exemplo completo (Membros): `auditoria/signals_membro.py`
