@@ -1,0 +1,75 @@
+{% load i18n %}
+<div data-app-modal-size="sm">
+<div class="modal-header border-bottom py-2">
+  <h2 class="modal-title h6 mb-0" id="appModalLabel">{{ titulo }}</h2>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Fechar' %}"></button>
+</div>
+<div class="modal-body py-3">
+  <form class="app-modal-form"
+        method="post"
+        hx-post="{{ action_url }}"
+        hx-target="#app-modal-content"
+        hx-swap="innerHTML"
+        hx-indicator="#app-modal-indicator"
+        hx-disabled-elt="find button[type=submit]">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger rounded-3 small mb-3">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <div class="row g-3">
+      <div class="col-6">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.mes.id_for_label }}">{{ form.mes.label }}<span class="text-danger" aria-hidden="true"> *</span></label>
+        {{ form.mes }}
+        {% for err in form.mes.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-6">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.ano.id_for_label }}">{{ form.ano.label }}<span class="text-danger" aria-hidden="true"> *</span></label>
+        {{ form.ano }}
+        {% for err in form.ano.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-12">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.descricao.id_for_label }}">{{ form.descricao.label }}</label>
+        {{ form.descricao }}
+        {% for err in form.descricao.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-12">
+        <div class="form-check">
+          {{ form.fechada }}
+          <label class="form-check-label" for="{{ form.fechada.id_for_label }}">{{ form.fechada.label }}</label>
+        </div>
+        {% for err in form.fechada.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-12">
+        <div class="form-check">
+          {{ form.competencia_continua }}
+          <label class="form-check-label" for="{{ form.competencia_continua.id_for_label }}">{{ form.competencia_continua.label }}</label>
+        </div>
+        {% if form.competencia_continua.help_text %}
+        <p class="form-text small mb-0">{{ form.competencia_continua.help_text }}</p>
+        {% endif %}
+        {% for err in form.competencia_continua.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-12">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.data_fechamento.id_for_label }}">{{ form.data_fechamento.label }}</label>
+        {{ form.data_fechamento }}
+        {% for err in form.data_fechamento.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+    </div>
+    <div class="modal-footer border-top mt-3 px-0 pb-0 pt-3 flex-wrap gap-2">
+      <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
+      {% if competencia and pode_excluir_competencia %}
+      <button type="button"
+              class="btn btn-app btn-app-danger btn-sm me-auto"
+              hx-get="{% url 'tesouraria:competencia_modal_excluir' pk=competencia.pk %}"
+              hx-target="#app-modal-content"
+              hx-swap="innerHTML"
+              hx-indicator="#app-modal-indicator">
+        {% trans "Excluir" %}
+      </button>
+      {% endif %}
+      <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+      <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3">{% trans "Salvar" %}</button>
+    </div>
+  </form>
+</div>
+</div>

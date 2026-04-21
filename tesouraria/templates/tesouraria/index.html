@@ -1,0 +1,75 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}Tesouraria{% endblock %}
+{% block page_title %}Tesouraria{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+  <p class="text-muted mb-0 flex-grow-1 min-w-0">
+    {% trans "Competências definem o mês e o ano de referência dos relatórios e lançamentos da tesouraria." %}
+  </p>
+  {% if acesso_modulos.tesouraria.ver %}
+  <div class="dropdown flex-shrink-0">
+    <button type="button"
+            class="btn btn-app btn-app-secondary px-3 dropdown-toggle d-inline-flex align-items-center gap-2"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            title="{% trans 'Opções da tesouraria' %}"
+            id="tesouraria-opcoes-dropdown">
+      <span id="tesouraria-gear-ind" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      <i class="bi bi-gear-fill" aria-hidden="true"></i>
+      <span class="d-none d-sm-inline">{% trans "Opções" %}</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="tesouraria-opcoes-dropdown">
+      <li>
+        <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+           href="{% url 'tesouraria:eventos_index' %}">
+          <i class="bi bi-calendar-event" aria-hidden="true"></i>
+          {% trans "Eventos" %}
+        </a>
+      </li>
+      <li>
+        <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+           href="{% url 'tesouraria:categorias_index' %}">
+          <i class="bi bi-tags" aria-hidden="true"></i>
+          {% trans "Categorias" %}
+        </a>
+      </li>
+      {% if acesso_modulos.tesouraria.editar %}
+      <li><hr class="dropdown-divider"></li>
+      <li>
+        <button type="button"
+                class="dropdown-item d-flex align-items-center gap-2 py-2"
+                hx-get="{% url 'tesouraria:competencia_modal_criar' %}"
+                hx-target="#app-modal-content"
+                hx-swap="innerHTML"
+                hx-indicator="#tesouraria-gear-ind">
+          <i class="bi bi-calendar-plus" aria-hidden="true"></i>
+          {% trans "Adicionar competência" %}
+        </button>
+      </li>
+      {% endif %}
+    </ul>
+  </div>
+  {% endif %}
+</div>
+
+<h2 class="h6 fw-bold text-dark mb-3">{% trans "Competências" %}</h2>
+<div class="position-relative">
+  <span id="tesouraria-lista-ind" class="htmx-indicator position-absolute top-0 end-0 mt-n1 me-1 z-2" aria-hidden="true">
+    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+  </span>
+  <div id="tesouraria-competencias-wrap"
+       hx-get="{% url 'tesouraria:competencias_lista' %}"
+       hx-trigger="load, refresh"
+       hx-swap="innerHTML"
+       hx-indicator="#tesouraria-lista-ind">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body py-5 text-center text-muted small">
+        <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>
+        {% trans "A carregar competências…" %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

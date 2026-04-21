@@ -1,0 +1,87 @@
+{% extends "base.html" %}
+{% load i18n static %}
+{% block title %}{{ conta.nome }} · {% trans "Tesouraria" %}{% endblock %}
+{% block page_title_wrap_class %}{% endblock %}
+{% block page_title %}
+<span class="d-inline-flex align-items-center gap-2 flex-wrap min-w-0">
+  <span class="text-truncate">{{ conta.nome }}</span>
+  {% if conta.tipo == 'banco' %}
+  <span class="badge rounded-pill text-bg-primary bg-opacity-10 text-primary flex-shrink-0">{% trans "Banco" %}</span>
+  {% else %}
+  <span class="badge rounded-pill text-bg-warning bg-opacity-10 text-dark flex-shrink-0">{% trans "Caixa" %}</span>
+  {% endif %}
+</span>
+{% endblock %}
+
+{% block page_subtitle %}
+<p class="text-muted small mb-0 mt-1">
+  <a href="{% url 'tesouraria:index' %}" class="link-secondary text-decoration-none">{% trans "Tesouraria" %}</a>
+  <span class="text-muted" aria-hidden="true">/</span>
+  <a href="{% url 'tesouraria:competencia_detalhe' pk=competencia.pk %}" class="link-secondary text-decoration-none">
+    {% trans "Competência" %} {{ competencia.mes|stringformat:"02d" }}/{{ competencia.ano }}
+  </a>
+  <span class="text-muted" aria-hidden="true">/</span>
+  {{ conta.nome }}
+</p>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3 mb-4">
+  <a href="{% url 'tesouraria:competencia_detalhe' pk=competencia.pk %}"
+     class="btn btn-app btn-app-secondary btn-sm px-3 align-self-start align-self-sm-center d-inline-flex align-items-center gap-2 text-decoration-none">
+    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+    {% trans "Contas e caixas" %}
+  </a>
+  {% if pode_editar %}
+  <div class="d-flex flex-wrap align-items-center justify-content-end gap-2 ms-sm-auto">
+    <button type="button"
+            class="btn btn-app btn-app-primary btn-sm px-3 d-inline-flex align-items-center gap-2"
+            hx-get="{% url 'tesouraria:lancamento_modal_entrada' competencia_pk=competencia.pk conta_pk=conta.pk %}"
+            hx-target="#app-modal-content"
+            hx-swap="innerHTML"
+            hx-indicator="#conta-detalhe-lanc-ind">
+      <i class="bi bi-plus-lg" aria-hidden="true"></i>
+      {% trans "Entrada" %}
+    </button>
+    <button type="button"
+            class="btn btn-app btn-app-danger btn-sm px-3 d-inline-flex align-items-center gap-2"
+            hx-get="{% url 'tesouraria:lancamento_modal_saida' competencia_pk=competencia.pk conta_pk=conta.pk %}"
+            hx-target="#app-modal-content"
+            hx-swap="innerHTML"
+            hx-indicator="#conta-detalhe-lanc-ind">
+      <i class="bi bi-plus-lg" aria-hidden="true"></i>
+      {% trans "Saída" %}
+    </button>
+    <span id="conta-detalhe-lanc-ind" class="htmx-indicator spinner-border spinner-border-sm align-self-center" role="status" aria-hidden="true"></span>
+  </div>
+  {% endif %}
+</div>
+
+{% if conta.descricao %}
+<p class="text-muted small mb-3">{{ conta.descricao }}</p>
+{% endif %}
+
+<h2 class="h6 fw-bold text-dark mb-3">{% trans "Lançamentos" %}</h2>
+<div class="position-relative">
+  <span id="tesouraria-lancamentos-ind" class="htmx-indicator position-absolute top-0 end-0 mt-n1 me-1 z-2" aria-hidden="true">
+    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+  </span>
+  <div id="tesouraria-lancamentos-wrap"
+       hx-get="{% url 'tesouraria:lancamentos_lista' competencia_pk=competencia.pk conta_pk=conta.pk %}"
+       hx-trigger="load, refresh"
+       hx-swap="innerHTML"
+       hx-indicator="#tesouraria-lancamentos-ind">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body py-5 text-center text-muted small">
+        <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>
+        {% trans "A carregar lançamentos…" %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'tesouraria/js/valor_brl_mask.js' %}"></script>
+  <script src="{% static 'tesouraria/js/lancamento_membro_autocomplete.js' %}"></script>
+{% endblock %}

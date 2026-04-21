@@ -49,6 +49,7 @@ urlpatterns = [
     ),
     path('', include('dashboard.urls')),
     path('membros/', include('membros.urls')),
+    path('tesouraria/', include('tesouraria.urls', namespace='tesouraria')),
     path('auditoria/', include('auditoria.urls', namespace='auditoria')),
 ]
 

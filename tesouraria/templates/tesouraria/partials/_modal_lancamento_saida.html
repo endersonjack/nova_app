@@ -1,0 +1,91 @@
+{% load i18n %}
+<div data-app-modal-size="lg">
+<div class="modal-header border-bottom py-2" data-app-modal-no-scroll>
+  <h2 class="modal-title h6 mb-0" id="appModalLabel">{{ titulo }}</h2>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Fechar' %}"></button>
+</div>
+<div class="modal-body py-3">
+  <p class="text-muted small mb-3">
+    {% trans "Conta" %} <strong>{{ conta.nome }}</strong>
+    · {% trans "Competência" %} <strong>{{ competencia.mes|stringformat:"02d" }}/{{ competencia.ano }}</strong>
+  </p>
+  <form class="app-modal-form"
+        method="post"
+        id="form-lancamento-saida"
+        hx-post="{{ action_url }}"
+        hx-target="#app-modal-content"
+        hx-swap="innerHTML"
+        hx-indicator="#app-modal-indicator"
+        hx-disabled-elt="find button[type=submit]">
+    {% csrf_token %}
+    {% if lancamento_pk %}
+    <input type="hidden" name="stash_lancamento_pk" value="{{ lancamento_pk }}">
+    {% endif %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger rounded-3 small mb-3">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <div class="row g-3">
+      <div class="col-12 col-md-2">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.dia.id_for_label }}">{{ form.dia.label }} <span class="text-muted fw-normal">({{ competencia.mes|stringformat:"02d" }}/{{ competencia.ano }})</span><span class="text-danger" aria-hidden="true"> *</span></label>
+        {{ form.data }}
+        {{ form.dia }}
+        {% for err in form.dia.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+        {% for err in form.data.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-12 col-md-10">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.categoria.id_for_label }}">{{ form.categoria.label }}<span class="text-danger" aria-hidden="true"> *</span></label>
+        <div class="input-group">
+          {{ form.categoria }}
+          <button type="button"
+                  class="btn btn-app btn-app-secondary btn-sm"
+                  title="{% trans 'Nova categoria' %}"
+                  aria-label="{% trans 'Nova categoria' %}"
+                  hx-post="{% url 'tesouraria:lancamento_preservar_rascunho_abrir_categoria' competencia.pk conta.pk %}"
+                  hx-include="#form-lancamento-saida"
+                  hx-vals='{"tipo_fluxo": "saida"}'
+                  hx-target="#app-modal-content"
+                  hx-swap="innerHTML"
+                  hx-indicator="#app-modal-indicator"
+                  hx-disabled-elt="this">
+            <i class="bi bi-plus-lg" aria-hidden="true"></i>
+          </button>
+        </div>
+        {% for err in form.categoria.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-12 col-md-4">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.valor.id_for_label }}">{{ form.valor.label }}<span class="text-danger" aria-hidden="true"> *</span></label>
+        <div class="input-group">
+          <span class="input-group-text">R$</span>
+          {{ form.valor }}
+        </div>
+        {% for err in form.valor.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-12 col-md-8">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.numero_documento.id_for_label }}">{{ form.numero_documento.label }}</label>
+        {{ form.numero_documento }}
+        {% for err in form.numero_documento.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-12">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.descricao.id_for_label }}">{{ form.descricao.label }}</label>
+        {{ form.descricao }}
+        {% for err in form.descricao.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-12">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.observacao.id_for_label }}">{{ form.observacao.label }}</label>
+        {{ form.observacao }}
+        {% for err in form.observacao.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-12">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.evento.id_for_label }}">{{ form.evento.label }}</label>
+        {{ form.evento }}
+        {% for err in form.evento.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+    </div>
+    <div class="modal-footer border-top mt-3 px-0 pb-0 pt-3 flex-wrap gap-2">
+      <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
+      <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+      <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3">{% trans "Salvar" %}</button>
+    </div>
+  </form>
+</div>
+</div>

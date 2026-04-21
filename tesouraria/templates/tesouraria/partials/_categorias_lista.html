@@ -1,0 +1,61 @@
+{% load i18n %}
+<div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col" class="ps-4">{% trans "Nome" %}</th>
+          <th scope="col">{% trans "Tipo" %}</th>
+          <th scope="col">{% trans "Ativa" %}</th>
+          {% if pode_editar %}
+          <th scope="col" class="text-end pe-4" style="width: 1%;">{% trans "Ações" %}</th>
+          {% endif %}
+        </tr>
+      </thead>
+      <tbody>
+        {% for cat in categorias %}
+        <tr>
+          <td class="ps-4 fw-semibold text-dark">{{ cat.nome }}</td>
+          <td>
+            {% if cat.tipo == 'entrada' %}
+            <span class="badge rounded-pill text-bg-success bg-opacity-10 text-success">{% trans "Entrada" %}</span>
+            {% else %}
+            <span class="badge rounded-pill text-bg-danger bg-opacity-10 text-danger">{% trans "Saída" %}</span>
+            {% endif %}
+          </td>
+          <td>
+            {% if cat.ativa %}
+            <span class="text-success small">{% trans "Sim" %}</span>
+            {% else %}
+            <span class="text-muted small">{% trans "Não" %}</span>
+            {% endif %}
+          </td>
+          {% if pode_editar %}
+          <td class="text-end pe-4">
+            <button type="button"
+                    class="btn btn-app btn-app-secondary btn-sm px-3"
+                    hx-get="{% url 'tesouraria:categoria_modal_editar' pk=cat.pk %}"
+                    hx-target="#app-modal-content"
+                    hx-swap="innerHTML"
+                    hx-indicator="#app-modal-indicator"
+                    title="{% trans 'Editar categoria' %}">
+              <i class="bi bi-pencil-square me-1" aria-hidden="true"></i>
+              {% trans "Editar" %}
+            </button>
+          </td>
+          {% endif %}
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="{% if pode_editar %}4{% else %}3{% endif %}" class="text-center text-muted py-5">
+            {% trans "Nenhuma categoria cadastrada." %}
+            {% if pode_editar %}
+            <span class="d-block small mt-1">{% trans "Use «Adicionar categoria» no menu de opções (engrenagem)." %}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>

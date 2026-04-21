@@ -1,0 +1,26 @@
+{% load i18n %}
+<div data-app-modal-size="sm">
+<div class="modal-header border-bottom py-2">
+  <h2 class="modal-title h6 text-danger mb-0" id="appModalLabel">{% trans "Excluir competência" %}</h2>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Fechar' %}"></button>
+</div>
+<div class="modal-body py-3">
+  <p class="small mb-3">
+    {% trans "Confirma a exclusão desta competência? Esta ação não pode ser desfeita." %}
+  </p>
+  <p class="fw-semibold text-dark mb-0">{{ competencia.mes|stringformat:"02d" }}/{{ competencia.ano }}{% if competencia.descricao %} — {{ competencia.descricao }}{% endif %}</p>
+  <form method="post"
+        hx-post="{% url 'tesouraria:competencia_excluir' pk=competencia.pk %}"
+        hx-swap="none"
+        hx-indicator="#tesouraria-del-ind">
+    {% csrf_token %}
+    <div class="d-flex flex-wrap gap-2 justify-content-end">
+      <span id="tesouraria-del-ind" class="htmx-indicator spinner-border spinner-border-sm text-danger me-auto" role="status" aria-hidden="true"></span>
+      <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">
+        {% trans "Cancelar" %}
+      </button>
+      <button type="submit" class="btn btn-app btn-app-danger btn-sm px-3">{% trans "Excluir" %}</button>
+    </div>
+  </form>
+</div>
+</div>

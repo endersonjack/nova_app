@@ -25,6 +25,8 @@
     var dlg = document.getElementById('app-modal-dialog');
     if (!dlg || !modalContent) return;
     var isSm = modalContent.querySelector('[data-app-modal-size="sm"]');
+    var isLg = modalContent.querySelector('[data-app-modal-size="lg"]');
+    var noScroll = modalContent.querySelector('[data-app-modal-no-scroll]');
     dlg.classList.remove(
       'modal-xl',
       'modal-sm',
@@ -34,6 +36,13 @@
     );
     if (isSm) {
       dlg.classList.add('app-modal-dialog--novo');
+    } else if (isLg) {
+      dlg.classList.add('modal-lg');
+      if (!noScroll) {
+        dlg.classList.add('modal-dialog-scrollable');
+      }
+    } else if (noScroll) {
+      dlg.classList.add('modal-xl');
     } else {
       dlg.classList.add('modal-xl', 'modal-dialog-scrollable');
     }
@@ -82,5 +91,59 @@
     if (w && window.htmx) {
       window.htmx.trigger(w, 'refresh');
     }
+  });
+
+  document.body.addEventListener('tesourariaCompetenciasRefresh', function () {
+    var w = document.getElementById('tesouraria-competencias-wrap');
+    if (w && window.htmx) {
+      window.htmx.trigger(w, 'refresh');
+    }
+  });
+
+  document.body.addEventListener('tesourariaCategoriasRefresh', function () {
+    var w = document.getElementById('tesouraria-categorias-wrap');
+    if (w && window.htmx) {
+      window.htmx.trigger(w, 'refresh');
+    }
+  });
+
+  document.body.addEventListener('tesourariaEventosRefresh', function () {
+    var w = document.getElementById('tesouraria-eventos-wrap');
+    if (w && window.htmx) {
+      window.htmx.trigger(w, 'refresh');
+    }
+  });
+
+  document.body.addEventListener('tesourariaLancamentosRefresh', function () {
+    var w = document.getElementById('tesouraria-lancamentos-wrap');
+    if (w && window.htmx) {
+      window.htmx.trigger(w, 'refresh');
+    }
+  });
+
+  document.body.addEventListener('click', function (e) {
+    var tr = e.target.closest('tr[data-href]');
+    if (!tr) return;
+    if (e.target.closest('button, a')) return;
+    var href = tr.getAttribute('data-href');
+    if (href) window.location.href = href;
+  });
+
+  document.body.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var tr = e.target.closest('tr[data-href]');
+    if (!tr || e.target !== tr) return;
+    e.preventDefault();
+    var href = tr.getAttribute('data-href');
+    if (href) window.location.href = href;
+  });
+
+  document.body.addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter' && e.key !== ' ') return;
+    var tr = e.target.closest('tr.tesouraria-lancamento-row');
+    if (!tr || e.target !== tr) return;
+    if (!tr.getAttribute('hx-get')) return;
+    e.preventDefault();
+    if (window.htmx) window.htmx.trigger(tr, 'click');
   });
 })();

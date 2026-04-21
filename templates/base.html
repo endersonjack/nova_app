@@ -77,10 +77,12 @@
           {% endif %}
           {% if acesso_modulos.tesouraria.ver %}
           <li class="nav-item">
-            <span class="nav-link text-white text-opacity-50 pe-none" title="Em breve">
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.namespace == 'tesouraria' %}active{% endif %}"
+               href="{% url 'tesouraria:index' %}"
+               title="Tesouraria">
               <i class="bi bi-cash-stack fs-5"></i>
               <span class="sidebar-link-text">Tesouraria</span>
-            </span>
+            </a>
           </li>
           {% endif %}
           {% if acesso_modulos.visitantes.ver %}
@@ -155,7 +157,7 @@
     <div class="app-main flex-grow-1 d-flex flex-column min-vh-100 min-w-0">
       <header class="app-topbar sticky-top shadow-sm px-3 px-lg-4 py-2 d-flex align-items-center justify-content-between gap-3">
         <div class="d-flex align-items-center gap-2 min-w-0">
-          <div class="text-truncate">
+          <div class="min-w-0 {% block page_title_wrap_class %}text-truncate{% endblock %}">
             <h1 class="h5 mb-0 fw-semibold text-dark">{% block page_title %}Painel{% endblock %}</h1>
             {% block page_subtitle %}{% endblock %}
           </div>

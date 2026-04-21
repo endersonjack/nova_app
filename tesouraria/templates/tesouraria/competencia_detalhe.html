@@ -1,0 +1,370 @@
+{% extends "base.html" %}
+{% load i18n tesouraria_money %}
+{% block title %}{% trans "Competência" %} {{ competencia.mes|stringformat:"02d" }}/{{ competencia.ano }}{% endblock %}
+{# Sem text-truncate no wrapper: o badge «Aberta» fica visível ao lado do título. #}
+{% block page_title_wrap_class %}{% endblock %}
+{% block page_title %}
+<span class="d-inline-flex align-items-center gap-2 flex-wrap min-w-0">
+  <span class="text-truncate">
+    {% if competencia.descricao %}{{ competencia.descricao }}{% else %}{{ competencia.mes|stringformat:"02d" }}/{{ competencia.ano }}{% endif %}
+  </span>
+  {% if competencia.fechada %}
+  <span class="badge rounded-pill text-bg-secondary flex-shrink-0">{% trans "Fechada" %}</span>
+  {% else %}
+  <span class="badge rounded-pill text-bg-light text-success border border-success border-opacity-25 flex-shrink-0">{% trans "Aberta" %}</span>
+  {% endif %}
+</span>
+{% endblock %}
+
+{% block page_subtitle %}
+<p class="text-muted small mb-0 mt-1">
+  <a href="{% url 'tesouraria:index' %}" class="link-secondary text-decoration-none">{% trans "Tesouraria" %}</a>
+  <span class="text-muted" aria-hidden="true">/</span>
+  {% trans "Competência" %} {{ competencia.mes|stringformat:"02d" }}/{{ competencia.ano }}
+  {% if competencia.data_fechamento %}
+  <span class="text-muted" aria-hidden="true"> · </span>
+  <span>{% trans "Fechamento" %}: {{ competencia.data_fechamento|date:"SHORT_DATETIME_FORMAT" }}</span>
+  {% endif %}
+</p>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3 mb-4">
+  <a href="{% url 'tesouraria:index' %}"
+     class="btn btn-app btn-app-secondary btn-sm px-3 align-self-start align-self-sm-center d-inline-flex align-items-center gap-2 text-decoration-none">
+    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+    {% trans "Competências" %}
+  </a>
+  {% if pode_editar %}
+  <div class="d-flex flex-wrap align-items-center justify-content-end gap-2 ms-sm-auto">
+    <button type="button"
+            class="btn btn-app btn-app-primary btn-sm px-3"
+            hx-get="{% url 'tesouraria:conta_modal_criar' competencia_pk=competencia.pk %}?tipo=caixa"
+            hx-target="#app-modal-content"
+            hx-swap="innerHTML"
+            hx-indicator="#tesouraria-detalhe-ind">
+      <i class="bi bi-cash-coin me-1" aria-hidden="true"></i>
+      {% trans "Novo caixa" %}
+    </button>
+    <button type="button"
+            class="btn btn-app btn-app-primary btn-sm px-3"
+            hx-get="{% url 'tesouraria:conta_modal_criar' competencia_pk=competencia.pk %}?tipo=banco"
+            hx-target="#app-modal-content"
+            hx-swap="innerHTML"
+            hx-indicator="#tesouraria-detalhe-ind">
+      <i class="bi bi-bank me-1" aria-hidden="true"></i>
+      {% trans "Nova conta" %}
+    </button>
+    <button type="button"
+            class="btn btn-app btn-app-secondary btn-sm px-3 d-inline-flex align-items-center gap-2"
+            data-bs-toggle="modal"
+            data-bs-target="#modalRelatorioCompetencia">
+      <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+      {% trans "Gerar relatório em PDF" %}
+    </button>
+    <div class="dropdown">
+      <button type="button"
+              class="btn btn-app btn-app-secondary btn-sm px-3 dropdown-toggle d-inline-flex align-items-center gap-2"
+              data-bs-toggle="dropdown"
+              aria-expanded="false"
+              title="{% trans 'Opções da competência' %}"
+              id="tesouraria-competencia-opcoes">
+        <span id="tesouraria-detalhe-ind" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+        <i class="bi bi-gear-fill" aria-hidden="true"></i>
+        <span class="d-none d-sm-inline">{% trans "Competência" %}</span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="tesouraria-competencia-opcoes">
+        <li>
+          <button type="button"
+                  class="dropdown-item d-flex align-items-center gap-2 py-2"
+                  hx-get="{% url 'tesouraria:competencia_modal_editar' pk=competencia.pk %}"
+                  hx-target="#app-modal-content"
+                  hx-swap="innerHTML"
+                  hx-indicator="#tesouraria-detalhe-ind">
+            <i class="bi bi-pencil-square" aria-hidden="true"></i>
+            {% trans "Editar competência" %}
+          </button>
+        </li>
+        {% if pode_excluir_competencia %}
+        <li><hr class="dropdown-divider"></li>
+        <li>
+          <button type="button"
+                  class="dropdown-item d-flex align-items-center gap-2 py-2 text-danger"
+                  hx-get="{% url 'tesouraria:competencia_modal_excluir' pk=competencia.pk %}"
+                  hx-target="#app-modal-content"
+                  hx-swap="innerHTML"
+                  hx-indicator="#tesouraria-detalhe-ind">
+            <i class="bi bi-trash" aria-hidden="true"></i>
+            {% trans "Excluir competência" %}
+          </button>
+        </li>
+        {% endif %}
+      </ul>
+    </div>
+  </div>
+  {% else %}
+  <div class="d-flex flex-wrap align-items-center justify-content-end gap-2 ms-sm-auto">
+    <button type="button"
+            class="btn btn-app btn-app-secondary btn-sm px-3 d-inline-flex align-items-center gap-2"
+            data-bs-toggle="modal"
+            data-bs-target="#modalRelatorioCompetencia">
+      <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+      {% trans "Gerar relatório em PDF" %}
+    </button>
+  </div>
+  {% endif %}
+</div>
+
+{% include "tesouraria/partials/_modal_relatorio_competencia_pdf.html" %}
+<iframe name="tesouraria-pdf-frame"
+        title="{% trans 'Download do relatório PDF' %}"
+        class="visually-hidden"
+        tabindex="-1"></iframe>
+
+<section aria-labelledby="competencia-contas-titulo">
+<h2 id="competencia-contas-titulo" class="h4 fw-bold text-dark mb-2 mt-2">{% trans "Contas e caixas" %}</h2>
+<p class="text-body mb-3 mb-sm-4 fw-medium">{% trans "Lista de caixas e contas desta competência. Clique para abrir e ver detalhes dos lançamentos." %}</p>
+<div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
+  <div class="table-responsive">
+    <table class="table table-hover align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col" class="ps-4">{% trans "Nome" %}</th>
+          <th scope="col">{% trans "Tipo" %}</th>
+          <th scope="col">{% trans "Descrição" %}</th>
+          <th scope="col" class="text-end">{% trans "Saldo" %}</th>
+          <th scope="col" class="pe-4">{% trans "Ativa" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for conta in contas %}
+        <tr role="link"
+            tabindex="0"
+            aria-label="{% trans 'Abrir conta ou caixa' %} {{ conta.nome }}"
+            data-href="{% url 'tesouraria:conta_detalhe' competencia_pk=competencia.pk conta_pk=conta.pk %}">
+          <td class="ps-4 fw-semibold text-dark">{{ conta.nome }}</td>
+          <td>
+            {% if conta.tipo == 'banco' %}
+            <span class="badge rounded-pill text-bg-primary bg-opacity-10 text-primary">{% trans "Banco" %}</span>
+            {% else %}
+            <span class="badge rounded-pill text-bg-warning bg-opacity-10 text-dark">{% trans "Caixa" %}</span>
+            {% endif %}
+          </td>
+          <td class="text-secondary small">{{ conta.descricao|default:"—"|truncatechars:80 }}</td>
+          <td class="text-end fw-semibold text-nowrap">
+            {% with s=saldo_por_conta|saldo_na_conta:conta %}
+            {% if s < 0 %}
+            <span class="text-danger">{{ s|moeda_brl }}</span>
+            {% else %}
+            <span class="text-dark">{{ s|moeda_brl }}</span>
+            {% endif %}
+            {% endwith %}
+          </td>
+          <td class="pe-4">
+            {% if conta.ativa %}
+            <span class="text-success small">{% trans "Sim" %}</span>
+            {% else %}
+            <span class="text-muted small">{% trans "Não" %}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-muted py-5">
+            {% trans "Nenhuma conta ou caixa cadastrada." %}
+            {% if pode_editar %}
+            <span class="d-block small mt-1">{% trans "Use «Novo caixa» ou «Nova conta» para adicionar." %}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+</section>
+
+<section class="mt-5 pt-4 border-top border-light">
+<h3 class="h6 fw-semibold text-secondary text-uppercase small mb-2">{% trans "Resumo geral da competência" %}</h3>
+<p class="text-muted small mb-3">
+  {% trans "Totais de lançamentos deste mês/ano por cada conta ou caixa cadastrada (inclui linhas com R$ 0,00 se não houver movimento nesta competência)." %}
+</p>
+<div class="card border border-light shadow-sm rounded-4 overflow-hidden bg-white">
+  <div class="card-body py-3 border-bottom">
+    {% if pode_editar %}
+    <form method="post"
+          hx-post="{% url 'tesouraria:competencia_definir_continua' pk=competencia.pk %}"
+          hx-trigger="change from:#id-competencia-continua-resumo"
+          hx-swap="none">
+      {% csrf_token %}
+      <div class="form-check mb-0">
+        <input class="form-check-input"
+               type="checkbox"
+               name="competencia_continua"
+               id="id-competencia-continua-resumo"
+               {% if competencia.competencia_continua %}checked{% endif %}>
+        <label class="form-check-label fw-medium" for="id-competencia-continua-resumo">
+          {% trans "Competência contínua" %}
+        </label>
+      </div>
+      <p class="form-text small mb-0 mt-1">
+        {% trans "Quando ativo, o fechamento soma o saldo acumulado da competência imediatamente anterior (e segue a cadeia de meses marcados como contínuos)." %}
+      </p>
+    </form>
+    {% else %}
+    <p class="small text-muted mb-0">
+      {% if competencia.competencia_continua %}
+      {% trans "Competência contínua: ativa (o fechamento inclui o acumulado anterior)." %}
+      {% else %}
+      {% trans "Competência contínua: inativa (apenas movimentos deste mês/ano no fechamento)." %}
+      {% endif %}
+    </p>
+    {% endif %}
+  </div>
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col" class="ps-4">{% trans "Nome" %}</th>
+          <th scope="col">{% trans "Tipo" %}</th>
+          <th scope="col" class="text-end">{% trans "Total entradas (R$)" %}</th>
+          <th scope="col" class="text-end">{% trans "Total saídas (R$)" %}</th>
+          <th scope="col" class="text-end pe-4">{% trans "Saldo (R$)" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in resumo_contas %}
+        <tr>
+          <td class="ps-4 fw-medium text-dark">{{ item.conta.nome }}</td>
+          <td>
+            {% if item.conta.tipo == 'banco' %}
+            <span class="badge rounded-pill text-bg-primary bg-opacity-10 text-primary">{% trans "Banco" %}</span>
+            {% else %}
+            <span class="badge rounded-pill text-bg-warning bg-opacity-10 text-dark">{% trans "Caixa" %}</span>
+            {% endif %}
+          </td>
+          <td class="text-end text-success text-nowrap">{{ item.entradas|moeda_brl }}</td>
+          <td class="text-end text-danger text-nowrap">{{ item.saidas|moeda_brl }}</td>
+          <td class="text-end fw-semibold text-nowrap pe-4">
+            {% if item.saldo < 0 %}
+            <span class="text-danger">{{ item.saldo|moeda_brl }}</span>
+            {% else %}
+            <span class="text-dark">{{ item.saldo|moeda_brl }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="5" class="text-center text-muted py-4 small">
+            {% trans "Nenhuma conta ou caixa cadastrada." %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      <tfoot class="table-light border-top">
+        {% if competencia.competencia_continua %}
+        <tr class="border-top">
+          <th scope="row" class="ps-4 fw-normal text-wrap" colspan="2">
+            {% if competencia_prev %}
+            {% trans "Saldo acumulado até" %} {{ competencia_prev.mes|stringformat:"02d" }}/{{ competencia_prev.ano }}
+            {% else %}
+            {% trans "Saldo acumulado (sem competência anterior cadastrada)" %}
+            {% endif %}
+          </th>
+          <td class="text-end text-muted">—</td>
+          <td class="text-end text-muted">—</td>
+          <td class="text-end fw-semibold text-nowrap pe-4">
+            {% if saldo_trazido_anterior < 0 %}
+            <span class="text-danger">{{ saldo_trazido_anterior|moeda_brl }}</span>
+            {% else %}
+            <span class="text-dark">{{ saldo_trazido_anterior|moeda_brl }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% endif %}
+        <tr>
+          <th scope="row" class="ps-4 fw-bold" colspan="2">{% trans "Saldo geral (fechamento)" %}</th>
+          <td class="text-end fw-bold text-success text-nowrap">{{ competencia_total_entradas|moeda_brl }}</td>
+          <td class="text-end fw-bold text-danger text-nowrap">{{ competencia_total_saidas|moeda_brl }}</td>
+          <td class="text-end fw-bold text-nowrap pe-4">
+            {% if competencia_saldo_geral_final < 0 %}
+            <span class="text-danger">{{ competencia_saldo_geral_final|moeda_brl }}</span>
+            {% else %}
+            <span class="text-dark">{{ competencia_saldo_geral_final|moeda_brl }}</span>
+            {% endif %}
+          </td>
+        </tr>
+      </tfoot>
+    </table>
+  </div>
+  <div class="card-body py-2 px-4 border-top bg-light bg-opacity-50">
+    <p class="small text-muted mb-0">
+      {% if competencia.competencia_continua %}
+      {% trans "As colunas de entradas e saídas no fechamento referem-se só a este mês/ano. A última coluna é o saldo acumulado após este período (inclui a cadeia de competências contínuas anteriores, quando existirem)." %}
+      {% else %}
+      {% trans "O fechamento considera apenas os lançamentos deste mês/ano, em todas as contas e caixas." %}
+      {% endif %}
+    </p>
+  </div>
+</div>
+</section>
+
+<section class="mt-4 pt-3 border-top border-light">
+<h3 class="h6 fw-semibold text-secondary text-uppercase small mb-2">{% trans "Resumo por evento" %}</h3>
+<p class="text-muted small mb-3">
+  {% trans "Totais desta competência apenas para lançamentos com evento associado. Movimentos sem evento não entram nesta tabela." %}
+</p>
+<div class="card border border-light shadow-sm rounded-4 overflow-hidden bg-white">
+  <div class="table-responsive">
+    <table class="table table-sm align-middle mb-0">
+      <thead class="table-light">
+        <tr>
+          <th scope="col" class="ps-4">{% trans "Evento" %}</th>
+          <th scope="col" class="text-end">{% trans "Total entradas (R$)" %}</th>
+          <th scope="col" class="text-end">{% trans "Total saídas (R$)" %}</th>
+          <th scope="col" class="text-end pe-4">{% trans "Saldo (R$)" %}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in resumo_eventos %}
+        <tr>
+          <td class="ps-4 fw-medium text-dark">{{ item.nome }}</td>
+          <td class="text-end text-success text-nowrap">{{ item.entradas|moeda_brl }}</td>
+          <td class="text-end text-danger text-nowrap">{{ item.saidas|moeda_brl }}</td>
+          <td class="text-end fw-semibold text-nowrap pe-4">
+            {% if item.saldo < 0 %}
+            <span class="text-danger">{{ item.saldo|moeda_brl }}</span>
+            {% else %}
+            <span class="text-dark">{{ item.saldo|moeda_brl }}</span>
+            {% endif %}
+          </td>
+        </tr>
+        {% empty %}
+        <tr>
+          <td colspan="4" class="text-center text-muted py-4 small">
+            {% trans "Nenhum lançamento com evento nesta competência." %}
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+      {% if resumo_eventos_totais %}
+      <tfoot class="table-light border-top">
+        <tr>
+          <th scope="row" class="ps-4 fw-bold">{% trans "Total" %}</th>
+          <td class="text-end fw-bold text-success text-nowrap">{{ resumo_eventos_totais.entradas|moeda_brl }}</td>
+          <td class="text-end fw-bold text-danger text-nowrap">{{ resumo_eventos_totais.saidas|moeda_brl }}</td>
+          <td class="text-end fw-bold text-nowrap pe-4">
+            {% if resumo_eventos_totais.saldo < 0 %}
+            <span class="text-danger">{{ resumo_eventos_totais.saldo|moeda_brl }}</span>
+            {% else %}
+            <span class="text-dark">{{ resumo_eventos_totais.saldo|moeda_brl }}</span>
+            {% endif %}
+          </td>
+        </tr>
+      </tfoot>
+      {% endif %}
+    </table>
+  </div>
+</div>
+</section>
+{% endblock %}

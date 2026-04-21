@@ -1,0 +1,74 @@
+{% load i18n %}
+<div data-app-modal-size="sm">
+<div class="modal-header border-bottom py-2">
+  <h2 class="modal-title h6 mb-0" id="appModalLabel">{{ titulo }}</h2>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Fechar' %}"></button>
+</div>
+<div class="modal-body py-3">
+  <form class="app-modal-form"
+        method="post"
+        hx-post="{{ action_url }}"
+        hx-target="#app-modal-content"
+        hx-swap="innerHTML"
+        hx-indicator="#app-modal-indicator"
+        hx-disabled-elt="find button[type=submit]">
+    {% csrf_token %}
+    {% if modal_categoria_desde_lancamento %}
+    <input type="hidden" name="retorno_lancamento" value="1">
+    {% endif %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger rounded-3 small mb-3">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <div class="row g-3">
+      <div class="col-12">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.nome.id_for_label }}">{{ form.nome.label }}<span class="text-danger" aria-hidden="true"> *</span></label>
+        {{ form.nome }}
+        {% for err in form.nome.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      {% if form.tipo.field.widget.input_type != 'hidden' %}
+      <div class="col-12">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.tipo.id_for_label }}">{{ form.tipo.label }}<span class="text-danger" aria-hidden="true"> *</span></label>
+        {{ form.tipo }}
+        {% for err in form.tipo.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      {% else %}
+      {{ form.tipo }}
+      {% for err in form.tipo.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      {% endif %}
+      <div class="col-12">
+        <div class="form-check">
+          {{ form.ativa }}
+          <label class="form-check-label" for="{{ form.ativa.id_for_label }}">{{ form.ativa.label }}</label>
+        </div>
+        {% for err in form.ativa.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+    </div>
+    <div class="modal-footer border-top mt-3 px-0 pb-0 pt-3 flex-wrap gap-2">
+      <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
+      {% if modal_categoria_desde_lancamento %}
+      <button type="button"
+              class="btn btn-app btn-app-secondary btn-sm"
+              hx-post="{{ url_voltar_lancamento }}"
+              hx-include="closest form"
+              hx-target="#app-modal-content"
+              hx-swap="innerHTML"
+              hx-indicator="#app-modal-indicator">
+        {% trans "Voltar ao lançamento" %}
+      </button>
+      {% endif %}
+      {% if categoria %}
+      <button type="button"
+              class="btn btn-app btn-app-danger btn-sm me-auto"
+              hx-get="{% url 'tesouraria:categoria_modal_excluir' pk=categoria.pk %}"
+              hx-target="#app-modal-content"
+              hx-swap="innerHTML"
+              hx-indicator="#app-modal-indicator">
+        {% trans "Excluir" %}
+      </button>
+      {% endif %}
+      <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>
+      <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3">{% trans "Salvar" %}</button>
+    </div>
+  </form>
+</div>
+</div>

@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Eventos" %} · {% trans "Tesouraria" %}{% endblock %}
+{% block page_title %}{% trans "Eventos" %}{% endblock %}
+
+{% block page_subtitle %}
+<p class="text-muted small mb-0 mt-1">
+  <a href="{% url 'tesouraria:index' %}" class="link-secondary text-decoration-none">{% trans "Tesouraria" %}</a>
+  <span class="text-muted" aria-hidden="true">/</span>
+  {% trans "Eventos" %}
+</p>
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3 mb-4">
+  <a href="{% url 'tesouraria:index' %}"
+     class="btn btn-app btn-app-secondary btn-sm px-3 align-self-start align-self-sm-center d-inline-flex align-items-center gap-2 text-decoration-none">
+    <i class="bi bi-arrow-left" aria-hidden="true"></i>
+    {% trans "Tesouraria" %}
+  </a>
+  {% if acesso_modulos.tesouraria.editar %}
+  <div class="dropdown flex-shrink-0 ms-sm-auto">
+    <button type="button"
+            class="btn btn-app btn-app-secondary px-3 dropdown-toggle d-inline-flex align-items-center gap-2"
+            data-bs-toggle="dropdown"
+            aria-expanded="false"
+            title="{% trans 'Opções dos eventos' %}"
+            id="tesouraria-eventos-opcoes-dropdown">
+      <span id="tesouraria-eventos-gear-ind" class="htmx-indicator spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+      <i class="bi bi-gear-fill" aria-hidden="true"></i>
+      <span class="d-none d-sm-inline">{% trans "Opções" %}</span>
+    </button>
+    <ul class="dropdown-menu dropdown-menu-end shadow border-0" aria-labelledby="tesouraria-eventos-opcoes-dropdown">
+      <li>
+        <button type="button"
+                class="dropdown-item d-flex align-items-center gap-2 py-2"
+                hx-get="{% url 'tesouraria:evento_modal_criar' %}"
+                hx-target="#app-modal-content"
+                hx-swap="innerHTML"
+                hx-indicator="#tesouraria-eventos-gear-ind">
+          <i class="bi bi-calendar-plus" aria-hidden="true"></i>
+          {% trans "Adicionar evento" %}
+        </button>
+      </li>
+    </ul>
+  </div>
+  {% endif %}
+</div>
+
+<p class="text-muted small mb-4">
+  {% trans "Marque lançamentos com eventos (cultos, conferências, etc.) para relatórios futuros por evento." %}
+</p>
+
+<div class="position-relative">
+  <span id="tesouraria-eventos-ind" class="htmx-indicator position-absolute top-0 end-0 mt-n1 me-1 z-2" aria-hidden="true">
+    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+  </span>
+  <div id="tesouraria-eventos-wrap"
+       hx-get="{% url 'tesouraria:eventos_lista' %}"
+       hx-trigger="load, refresh"
+       hx-swap="innerHTML"
+       hx-indicator="#tesouraria-eventos-ind">
+    <div class="card border-0 shadow-sm rounded-4">
+      <div class="card-body py-5 text-center text-muted small">
+        <span class="spinner-border spinner-border-sm text-primary me-2" role="status"></span>
+        {% trans "A carregar eventos…" %}
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

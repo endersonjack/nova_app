@@ -1,0 +1,70 @@
+{% load i18n %}
+<div class="modal fade" id="modalRelatorioCompetencia" tabindex="-1" aria-labelledby="modalRelatorioCompetenciaLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg modal-dialog-scrollable">
+    <div class="modal-content border-0 shadow rounded-4">
+      <div class="modal-header border-bottom py-3">
+        <h2 class="modal-title h6 mb-0 fw-semibold" id="modalRelatorioCompetenciaLabel">
+          {% trans "Gerar relatório em PDF" %}
+        </h2>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Fechar' %}"></button>
+      </div>
+      <div class="modal-body py-3">
+        <form method="post"
+              action="{% url 'tesouraria:competencia_relatorio_pdf' pk=competencia.pk %}"
+              target="tesouraria-pdf-frame"
+              id="form-relatorio-competencia-pdf">
+          {% csrf_token %}
+          <p class="text-muted small mb-3">{% trans "Escolha o que incluir no ficheiro PDF." %}</p>
+          <fieldset class="mb-3">
+            <legend class="form-label fw-semibold small text-uppercase text-secondary mb-2">
+              {% trans "Conteúdo" %}
+            </legend>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" name="inc_contas" id="rel-pdf-contas" checked>
+              <label class="form-check-label" for="rel-pdf-contas">
+                <span class="fw-medium">{% trans "Caixas e contas" %}</span>
+                <span class="d-block small text-muted">{% trans "Cada conta com todos os lançamentos desta competência." %}</span>
+              </label>
+            </div>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" name="inc_resumo_eventos" id="rel-pdf-eventos" checked>
+              <label class="form-check-label" for="rel-pdf-eventos">
+                <span class="fw-medium">{% trans "Resumo por eventos" %}</span>
+                <span class="d-block small text-muted">{% trans "Listagem de eventos e totais." %}</span>
+              </label>
+            </div>
+            <div class="form-check mb-0">
+              <input class="form-check-input" type="checkbox" name="inc_resumo_geral" id="rel-pdf-geral" checked>
+              <label class="form-check-label" for="rel-pdf-geral">
+                <span class="fw-medium">{% trans "Resumo geral" %}</span>
+                <span class="d-block small text-muted">{% trans "Totais por conta e indicação de competência contínua ou não." %}</span>
+              </label>
+            </div>
+          </fieldset>
+          <fieldset class="mb-0">
+            <legend class="form-label fw-semibold small text-uppercase text-secondary mb-2">
+              {% trans "Outros" %}
+            </legend>
+            <div class="form-check mb-2">
+              <input class="form-check-input" type="checkbox" name="apenas_entradas" id="rel-pdf-so-entradas">
+              <label class="form-check-label" for="rel-pdf-so-entradas">{% trans "Só entradas" %}</label>
+            </div>
+            <div class="form-check mb-0">
+              <input class="form-check-input" type="checkbox" name="apenas_saidas" id="rel-pdf-so-saidas">
+              <label class="form-check-label" for="rel-pdf-so-saidas">{% trans "Só saídas" %}</label>
+            </div>
+          </fieldset>
+          <div class="modal-footer border-top mt-4 px-0 pb-0 pt-3 flex-wrap gap-2">
+            <button type="button" class="btn btn-app btn-app-secondary btn-sm px-3" data-bs-dismiss="modal">
+              {% trans "Cancelar" %}
+            </button>
+            <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3 d-inline-flex align-items-center gap-2">
+              <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
+              {% trans "Gerar PDF" %}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>

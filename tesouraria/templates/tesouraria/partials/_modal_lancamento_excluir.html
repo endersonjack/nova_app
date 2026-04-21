@@ -1,0 +1,32 @@
+{% load i18n tesouraria_money %}
+<div data-app-modal-size="sm">
+<div class="modal-header border-bottom py-2">
+  <h2 class="modal-title h6 text-danger mb-0" id="appModalLabel">{% trans "Excluir lançamento" %}</h2>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="{% trans 'Fechar' %}"></button>
+</div>
+<div class="modal-body py-3">
+  <p class="small text-muted mb-3">
+    {% trans "Confirma a exclusão deste lançamento? Esta ação não pode ser desfeita." %}
+  </p>
+  <ul class="list-unstyled small mb-0">
+    <li><span class="text-muted">{% trans "Data" %}:</span> {{ lan.data|date:"SHORT_DATE_FORMAT" }}</li>
+    <li><span class="text-muted">{% trans "Categoria" %}:</span> {{ lan.categoria.nome }}</li>
+    <li><span class="text-muted">{% trans "Eventos" %}:</span> {% if lan.evento_id %}{{ lan.evento.nome }}{% else %}—{% endif %}</li>
+    <li><span class="text-muted">{% trans "Valor" %}:</span> {{ lan.valor|moeda_brl }}</li>
+    <li><span class="text-muted">{% trans "Descrição" %}:</span> {{ lan.descricao|default:"—" }}</li>
+  </ul>
+  <form method="post"
+        hx-post="{% url 'tesouraria:lancamento_excluir' competencia_pk=competencia.pk conta_pk=conta.pk pk=lan.pk %}"
+        hx-swap="none"
+        hx-indicator="#tesouraria-lancamento-del-ind">
+    {% csrf_token %}
+    <div class="d-flex flex-wrap gap-2 justify-content-end mt-4">
+      <span id="tesouraria-lancamento-del-ind" class="htmx-indicator spinner-border spinner-border-sm text-danger me-auto" role="status" aria-hidden="true"></span>
+      <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">
+        {% trans "Cancelar" %}
+      </button>
+      <button type="submit" class="btn btn-app btn-app-danger btn-sm px-3">{% trans "Excluir" %}</button>
+    </div>
+  </form>
+</div>
+</div>
