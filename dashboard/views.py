@@ -216,3 +216,8 @@ def estatistica_conteudo(request):
         'dashboard/partials/_estatistica_conteudo.html',
         ctx,
     )
+
+
+@login_required
+def politica_privacidade(request):
+    return render(request, 'dashboard/politica_privacidade.html')

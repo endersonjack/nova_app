@@ -127,7 +127,13 @@
               <span class="sidebar-footer-label">Administração</span>
             </a>
             {% endif %}
-            <form method="post" action="{% url 'logout' %}" class="{% if pode_acesso_django_admin %}mt-1{% endif %}">
+            <a class="sidebar-footer-link d-flex align-items-center gap-2 text-white text-decoration-none py-2 rounded-3 px-2 {% if pode_acesso_django_admin %}mt-1{% endif %}"
+               href="{% url 'politica_privacidade' %}"
+               title="Política de privacidade">
+              <i class="bi bi-shield-check fs-5 flex-shrink-0"></i>
+              <span class="sidebar-footer-label">Política de privacidade</span>
+            </a>
+            <form method="post" action="{% url 'logout' %}" class="mt-1">
               {% csrf_token %}
               <button type="submit" class="sidebar-footer-link btn btn-link text-start text-danger text-decoration-none w-100 d-flex align-items-center gap-2 py-2 px-2 rounded-3 border-0">
                 <i class="bi bi-box-arrow-right fs-5 flex-shrink-0"></i>
