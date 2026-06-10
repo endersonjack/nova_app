@@ -1,7 +1,7 @@
 [build]
-builder = "RAILPACK"
+builder = "DOCKERFILE"
 # Coloca staticfiles/ na imagem (evita aviso do WhiteNoise e 404 de estáticos).
-buildCommand = "python manage.py collectstatic --noinput"
+dockerfilePath = "Dockerfile"
 
 [deploy]
 preDeployCommand = ["python manage.py migrate --noinput"]
