@@ -31,6 +31,15 @@ MEU_PERFIL_SECOES = {
     'ministerios': 'membros/partials/detalhe/_secao_ministerios_display.html',
 }
 
+MEU_PERFIL_SECOES_LISTA = (
+    ('dados-pessoais', 'membros/partials/detalhe/_secao_dados_pessoais_display.html'),
+    ('localidade', 'membros/partials/detalhe/_secao_localidade_display.html'),
+    ('familia', 'membros/partials/detalhe/_secao_familia_display.html'),
+    ('batismo', 'membros/partials/detalhe/_secao_batismo_display.html'),
+    ('informacoes', 'membros/partials/detalhe/_secao_informacoes_display.html'),
+    ('ministerios', 'membros/partials/detalhe/_secao_ministerios_display.html'),
+)
+
 
 def _membro_do_usuario(user):
     perfil = getattr(user, 'perfil', None)
@@ -40,12 +49,17 @@ def _membro_do_usuario(user):
 
 
 def _meu_perfil_context(membro, secao_ativa='dados-pessoais'):
+    nome_parts = (membro.nome_completo or '').split()
+    perfil = getattr(membro, 'perfil_usuario', None)
     return {
         'membro': membro,
+        'membro_primeiro_nome': nome_parts[0] if nome_parts else '',
+        'membro_tipo_label': perfil.rotulo_tipo() if perfil else 'Membro',
         'secao_ativa': secao_ativa,
         'secao_slug': secao_ativa,
         'meu_perfil_mode': True,
         'secao_include': MEU_PERFIL_SECOES[secao_ativa],
+        'meu_perfil_secoes_lista': MEU_PERFIL_SECOES_LISTA,
     }
 
 

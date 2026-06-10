@@ -1,4 +1,4 @@
-<header id="membro-detalhe-topbar" class="membro-detalhe-topbar bg-white border-bottom shadow-sm">
+<header id="membro-detalhe-topbar" class="membro-detalhe-topbar meu-perfil-topbar bg-white border-bottom shadow-sm">
   <div class="container-fluid py-3 px-3 px-lg-4">
     <div class="d-flex flex-wrap align-items-start gap-3 justify-content-between">
       <div class="d-flex align-items-start gap-3 min-w-0 flex-grow-1">
@@ -9,9 +9,12 @@
             <i class="bi bi-person-fill text-muted fs-2"></i>
           {% endif %}
         </div>
-        <div class="min-w-0">
+        <div class="min-w-0 meu-perfil-topbar-text">
           <h1 class="h4 fw-bold text-dark mb-1 text-truncate">{{ membro.nome_completo }}</h1>
-          <p class="text-muted small mb-2 mb-lg-3">Perfil do membro</p>
+          <p class="text-muted small mb-2 mb-lg-3">
+            {% if membro.nome_conhecido %}{{ membro.nome_conhecido }}{% else %}{{ membro_primeiro_nome }}{% endif %}
+          </p>
+          <p class="text-muted small mb-2 mb-lg-3 membro-mobile-type-line">Tipo: {{ membro_tipo_label|default:"Membro" }}</p>
           <div class="d-flex flex-wrap gap-2 align-items-center">
             <span class="badge rounded-pill membro-detalhe-badge bg-light text-dark border">
               CPF: {{ membro.cpf_formatado|default:"-" }}
@@ -25,7 +28,7 @@
           </div>
         </div>
       </div>
-      <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-auto">
+      <div class="d-flex align-items-center gap-2 flex-shrink-0 ms-auto meu-perfil-topbar-actions">
         <a href="{% url 'meu_perfil_editar_cadastro' %}" class="btn btn-app btn-app-primary btn-sm">
           <i class="bi bi-pencil-square me-1"></i> Editar Meu Perfil
         </a>

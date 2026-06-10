@@ -1,0 +1,23 @@
+<div id="membro-detalhe-mobile-stack"
+     class="membro-detalhe-mobile-stack"
+     {% if mobile_stack_oob %}hx-swap-oob="true"{% endif %}>
+  {% for slug, template_name in membro_detalhe_secoes_lista %}
+    <section class="membro-detalhe-mobile-section">
+      {% include template_name with secao_slug=slug %}
+    </section>
+  {% endfor %}
+  <div class="membro-detalhe-mobile-actions">
+    <a href="{% url 'membros:membros_index' %}" class="btn btn-app btn-app-secondary btn-sm">
+      <i class="bi bi-arrow-left"></i> Voltar
+    </a>
+    {% if acesso_modulos.membros.editar %}
+      <button type="button"
+              class="btn btn-app btn-app-secondary btn-sm text-danger"
+              hx-get="{% url 'membros:modal_delete_confirm' membro.pk %}"
+              hx-target="#app-modal-content"
+              hx-swap="innerHTML">
+        <i class="bi bi-slash-circle"></i> Desativar membro
+      </button>
+    {% endif %}
+  </div>
+</div>

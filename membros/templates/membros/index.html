@@ -5,43 +5,45 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <link rel="stylesheet" href="{% static 'membros/css/membro_lista.css' %}" />
+  <link rel="stylesheet" href="{% static 'membros/css/membro_lista.css' %}?v=2" />
 {% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-  <p class="text-muted mb-0">
-    {% if membro_comum_somente_familia %}
-      Só vê os membros da sua família (vínculo do seu utilizador, cônjuge, filhos e pais cadastrados).
-    {% else %}
-      Cadastro de membros da igreja.
+<div class="membro-lista-page">
+  <div class="membro-lista-page-head d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+    <p class="text-muted mb-0">
+      {% if membro_comum_somente_familia %}
+        Só vê os membros da sua família (vínculo do seu utilizador, cônjuge, filhos e pais cadastrados).
+      {% else %}
+        Cadastro de membros da igreja.
+      {% endif %}
+    </p>
+    {% if acesso_modulos.membros.editar %}
+    <button type="button"
+            class="btn btn-app btn-app-primary btn-sm px-3 d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0 position-relative"
+            hx-get="{% url 'membros:modal_create' %}"
+            hx-target="#app-modal-content"
+            hx-swap="innerHTML"
+            hx-indicator="#btn-novo-membro-ind">
+      <span id="btn-novo-membro-ind" class="app-btn-inline-indicator htmx-indicator spinner-border spinner-border-sm" role="status"></span>
+      <i class="bi bi-person-plus" aria-hidden="true"></i>
+      <span>Novo membro</span>
+    </button>
     {% endif %}
-  </p>
-  {% if acesso_modulos.membros.editar %}
-  <button type="button"
-          class="btn btn-app btn-app-primary btn-sm px-3 d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0 position-relative"
-          hx-get="{% url 'membros:modal_create' %}"
-          hx-target="#app-modal-content"
-          hx-swap="innerHTML"
-          hx-indicator="#btn-novo-membro-ind">
-    <span id="btn-novo-membro-ind" class="app-btn-inline-indicator htmx-indicator spinner-border spinner-border-sm" role="status"></span>
-    <i class="bi bi-person-plus" aria-hidden="true"></i>
-    <span>Novo membro</span>
-  </button>
-  {% endif %}
-</div>
+  </div>
 
-<div class="position-relative">
-  <span id="lista-htmx-indicator" class="htmx-indicator position-absolute top-0 end-0 mt-n1 me-1 z-2" aria-hidden="true">
-    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
-  </span>
-  <div id="membro-lista-wrap"
-       data-lista-url="{% url 'membros:lista_partial' %}"
-       hx-get="{% url 'membros:lista_partial' %}"
-       hx-trigger="load, refresh from:body"
-       hx-swap="innerHTML"
-       hx-indicator="#lista-htmx-indicator">
-    {% include "membros/partials/_skeleton.html" %}
+  <div class="position-relative">
+    <span id="lista-htmx-indicator" class="htmx-indicator position-absolute top-0 end-0 mt-n1 me-1 z-2" aria-hidden="true">
+      <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+    </span>
+    <div id="membro-lista-wrap"
+         data-lista-url="{% url 'membros:lista_partial' %}"
+         hx-get="{% url 'membros:lista_partial' %}"
+         hx-trigger="load, refresh from:body"
+         hx-swap="innerHTML"
+         hx-indicator="#lista-htmx-indicator">
+      {% include "membros/partials/_skeleton.html" %}
+    </div>
   </div>
 </div>
 

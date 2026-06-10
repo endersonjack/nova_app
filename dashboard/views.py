@@ -221,3 +221,21 @@ def estatistica_conteudo(request):
 @login_required
 def politica_privacidade(request):
     return render(request, 'dashboard/politica_privacidade.html')
+
+
+@login_required
+def ministerios_index(request):
+    return render(
+        request,
+        'dashboard/em_breve.html',
+        {'titulo': 'Ministérios', 'icone': 'bi-diagram-3'},
+    )
+
+
+@login_required
+def seminario_index(request):
+    return render(
+        request,
+        'dashboard/em_breve.html',
+        {'titulo': 'Seminário', 'icone': 'bi-journal-text'},
+    )

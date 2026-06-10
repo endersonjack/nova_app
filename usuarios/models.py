@@ -97,6 +97,15 @@ class UserProfile(models.Model):
         parts = [str(labels[c]) for c in self.modulos_normalizados() if c in labels]
         return ', '.join(parts) if parts else '—'
 
+    def rotulo_tipo(self) -> str:
+        if self.papel == PapelMembro.COMUM:
+            return str(_('Membro'))
+        if self.papel == PapelMembro.EDITOR:
+            return str(_('Membro Editor'))
+        if self.papel == PapelMembro.ADMIN:
+            return str(_('Admin'))
+        return str(self.get_papel_display())
+
     def save(self, *args, **kwargs):
         if self.papel == PapelMembro.ADMIN:
             self.modulos = []

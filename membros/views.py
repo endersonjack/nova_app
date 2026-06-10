@@ -93,6 +93,15 @@ SECAO_CONFIG = {
     },
 }
 
+SECAO_DISPLAY_LIST = (
+    ('dados-pessoais', 'membros/partials/detalhe/_secao_dados_pessoais_display.html'),
+    ('localidade', 'membros/partials/detalhe/_secao_localidade_display.html'),
+    ('familia', 'membros/partials/detalhe/_secao_familia_display.html'),
+    ('batismo', 'membros/partials/detalhe/_secao_batismo_display.html'),
+    ('informacoes', 'membros/partials/detalhe/_secao_informacoes_display.html'),
+    ('ministerios', 'membros/partials/detalhe/_secao_ministerios_display.html'),
+)
+
 MODAL_SECAO_SHELL = 'membros/partials/detalhe/_modal_secao_editar.html'
 
 
@@ -166,12 +175,17 @@ def _familia_conjuge_enabled(membro, form=None, post=None) -> bool:
 
 def _build_secao_ctx(request, membro, slug, form=None, post=None, with_form=False):
     cfg = SECAO_CONFIG[slug]
+    nome_parts = (membro.nome_completo or '').split()
+    perfil_usuario = getattr(membro, 'perfil_usuario', None)
     ctx = {
         'membro': membro,
+        'membro_primeiro_nome': nome_parts[0] if nome_parts else '',
+        'membro_tipo_label': perfil_usuario.rotulo_tipo() if perfil_usuario else 'Membro',
         'secao_slug': slug,
         'titulo_modal': cfg['titulo_modal'],
         'form_partial': cfg['form_partial'],
         'action_url': reverse('membros:secao_salvar', args=[membro.pk, slug]),
+        'membro_detalhe_secoes_lista': SECAO_DISPLAY_LIST,
     }
     if form is not None:
         ctx['form'] = form

@@ -1,9 +1,14 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Editar Meu Perfil{% endblock %}
 {% block page_title %}Editar Meu Perfil{% endblock %}
 {% block page_subtitle %}
   <p class="text-muted small mb-0">Atualize os dados permitidos do seu cadastro.</p>
+{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'usuarios/css/meu_perfil.css' %}?v=4" />
 {% endblock %}
 
 {% block content %}
@@ -56,7 +61,45 @@
           </div>
           <div class="col-md-6">
             <label class="form-label" for="{{ form.foto.id_for_label }}">{{ form.foto.label }}</label>
-            {{ form.foto }}
+            <div class="meu-perfil-foto-desktop">
+              {{ form.foto }}
+            </div>
+            <div class="meu-perfil-foto-mobile">
+              <div class="meu-perfil-foto-preview">
+                <div class="meu-perfil-foto-preview__image">
+                  {% if membro.foto %}
+                    <img src="{{ membro.foto.url }}" alt="Foto atual" id="meu-perfil-foto-preview-img" />
+                  {% else %}
+                    <i class="bi bi-person-fill" id="meu-perfil-foto-preview-icon" aria-hidden="true"></i>
+                  {% endif %}
+                </div>
+                <div class="min-w-0">
+                  <p class="fw-semibold text-dark mb-1">Foto atual</p>
+                  <p class="text-muted small mb-0" id="meu-perfil-foto-selected-name">
+                    {% if membro.foto %}{{ membro.foto.name|cut:"membros/fotos/" }}{% else %}Nenhuma foto cadastrada{% endif %}
+                  </p>
+                </div>
+              </div>
+              <div class="meu-perfil-foto-actions">
+                <label class="btn btn-app btn-app-secondary btn-sm" for="id_foto_galeria">
+                  <i class="bi bi-image"></i> Galeria
+                </label>
+                <input id="id_foto_galeria"
+                       class="visually-hidden meu-perfil-foto-input"
+                       type="file"
+                       name="foto"
+                       accept="image/*" />
+                <label class="btn btn-app btn-app-primary btn-sm" for="id_foto_camera">
+                  <i class="bi bi-camera"></i> Tirar foto
+                </label>
+                <input id="id_foto_camera"
+                       class="visually-hidden meu-perfil-foto-input"
+                       type="file"
+                       name="foto"
+                       accept="image/*"
+                       capture="environment" />
+              </div>
+            </div>
             {% for err in form.foto.errors %}<div class="text-danger small mt-1">{{ err }}</div>{% endfor %}
           </div>
         </div>
@@ -85,6 +128,9 @@
     <section class="card border-0 shadow-sm">
       <div class="card-body p-3 p-lg-4">
         <h2 class="h6 fw-bold text-dark mb-3">Família</h2>
+        <div class="alert alert-secondary rounded-3 small mb-3">
+          Nesta tela você pode atualizar seu estado civil e a data de casamento. Vínculos familiares, como cônjuge, pais e filhos, são ajustados pela equipe responsável pelo cadastro.
+        </div>
         <div class="row g-3">
           <div class="col-md-6">
             <label class="form-label" for="{{ form.estado_civil.id_for_label }}">{{ form.estado_civil.label }}</label>
@@ -167,6 +213,32 @@
     button.disabled = true;
     spinner.classList.remove('d-none');
     label.textContent = 'Salvando...';
+  });
+
+  document.querySelectorAll('.meu-perfil-foto-input').forEach(function (input) {
+    input.addEventListener('change', function () {
+      var file = input.files && input.files[0];
+      if (!file) return;
+      document.querySelectorAll('.meu-perfil-foto-input').forEach(function (other) {
+        if (other !== input) other.value = '';
+      });
+      var nameEl = document.getElementById('meu-perfil-foto-selected-name');
+      if (nameEl) nameEl.textContent = file.name;
+      var img = document.getElementById('meu-perfil-foto-preview-img');
+      var icon = document.getElementById('meu-perfil-foto-preview-icon');
+      if (!img) {
+        img = document.createElement('img');
+        img.id = 'meu-perfil-foto-preview-img';
+        img.alt = 'Prévia da foto';
+        var wrap = document.querySelector('.meu-perfil-foto-preview__image');
+        if (wrap) {
+          wrap.innerHTML = '';
+          wrap.appendChild(img);
+        }
+      }
+      if (icon) icon.remove();
+      img.src = URL.createObjectURL(file);
+    });
   });
 })();
 </script>

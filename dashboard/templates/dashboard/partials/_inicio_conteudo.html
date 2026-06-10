@@ -6,31 +6,73 @@
     </div>
   </div>
   {% endif %}
-  {% if not dashboard_comum_somente_pessoal %}
   <div class="col-md-6 col-lg-5">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body d-flex flex-column justify-content-center py-4">
-        <div class="text-muted small mb-1 text-uppercase fw-semibold" style="letter-spacing: 0.04em;">Membros</div>
-        <div class="display-5 fw-bold text-dark lh-sm">{{ total_membros }}</div>
-        <p class="text-muted small mb-0 mt-2">Total cadastrado</p>
+    <div class="card dashboard-notice-card border-0 h-100 position-relative">
+      <div class="card-body d-flex flex-column p-3 p-lg-4">
+        <div class="d-flex align-items-center gap-3 mb-3">
+          <div class="dashboard-notice-icon flex-shrink-0">
+            <i class="bi bi-megaphone" aria-hidden="true"></i>
+          </div>
+          <div class="min-w-0">
+            <h2 class="h6 fw-bold text-dark mb-1">AVISOS - Ministérios</h2>
+            <p class="text-muted small mb-0">Comunicados e lembretes dos ministérios</p>
+          </div>
+        </div>
+        <div class="dashboard-notice-empty d-flex flex-column align-items-center justify-content-center text-center flex-grow-1 py-4">
+          <i class="bi bi-pin-angle" aria-hidden="true"></i>
+          <p class="fw-semibold text-dark mb-1 mt-2">Área de avisos</p>
+          <p class="text-muted small mb-0">Vamos implementar os avisos dos ministérios aqui em breve.</p>
+        </div>
+        <a href="{% url 'dashboard_ministerios' %}"
+           class="stretched-link"
+           aria-label="Abrir Ministérios"></a>
       </div>
     </div>
   </div>
-  {% endif %}
-  <div class="{% if dashboard_comum_somente_pessoal %}col-12{% else %}col-md-6 col-lg-7{% endif %}">
-    <div class="card border-0 shadow-sm h-100">
-      <div class="card-body d-flex flex-column">
-        <h2 class="h6 fw-bold text-dark mb-1">Aniversariantes do mês</h2>
-        <p class="text-muted small mb-3">Todos os membros ativos com data de nascimento · {{ mes_label|capfirst }}</p>
+  <div class="col-md-6 col-lg-7">
+    <div class="card dashboard-birthday-card border-0 h-100">
+      <div class="card-body d-flex flex-column p-3 p-lg-4">
+        <div class="dashboard-birthday-head d-flex align-items-start justify-content-between gap-3 mb-3">
+          <div class="d-flex align-items-center gap-3 min-w-0">
+            <div class="dashboard-birthday-icon flex-shrink-0">
+              <i class="bi bi-gift" aria-hidden="true"></i>
+            </div>
+            <div class="min-w-0">
+              <h2 class="h6 fw-bold text-dark mb-1">Aniversariantes do mês</h2>
+              <p class="text-muted small mb-0">Membros ativos · {{ mes_label|capfirst }}</p>
+            </div>
+          </div>
+          <span class="dashboard-birthday-count badge rounded-pill">
+            {{ aniversariantes|length }} neste mês
+          </span>
+        </div>
         {% if aniversariantes %}
-          <ul class="list-group list-group-flush rounded-3 border small mb-0">
+          <ul class="dashboard-birthday-list list-unstyled mb-0">
             {% for m in aniversariantes %}
-              <li class="list-group-item {% if not dashboard_comum_somente_pessoal or m.pk in familia_pks %}position-relative{% endif %} d-flex align-items-center justify-content-between gap-2 px-3 py-2">
-                <span class="text-muted flex-shrink-0" style="min-width: 2.5rem;">{{ m.data_nascimento|date:"d/m" }}</span>
-                <span class="fw-medium text-dark text-truncate">
-                  {% if m.nome_conhecido %}{{ m.nome_conhecido }}{% else %}{{ m.nome_completo }}{% endif %}
-                </span>
-                {% if not dashboard_comum_somente_pessoal or m.pk in familia_pks %}
+              <li class="dashboard-birthday-item {% if not dashboard_comum_somente_pessoal %}position-relative dashboard-birthday-item--link{% endif %}">
+                <div class="dashboard-birthday-date flex-shrink-0">
+                  <span>{{ m.data_nascimento|date:"d" }}</span>
+                  <small>{{ m.data_nascimento|date:"M" }}</small>
+                </div>
+                <div class="dashboard-birthday-avatar flex-shrink-0 {% if m.foto %}overflow-hidden p-0{% endif %}">
+                  {% if m.foto %}
+                    <img src="{{ m.foto.url }}" alt="" width="44" height="44" loading="lazy" decoding="async" />
+                  {% else %}
+                    <span>{{ m.nome_completo|slice:":2"|upper }}</span>
+                  {% endif %}
+                </div>
+                <div class="min-w-0 flex-grow-1">
+                  <p class="dashboard-birthday-name mb-0 text-truncate">
+                    {% if m.nome_conhecido %}{{ m.nome_conhecido }}{% else %}{{ m.nome_completo }}{% endif %}
+                  </p>
+                  {% if m.nome_conhecido %}
+                    <p class="dashboard-birthday-sub mb-0 text-truncate">{{ m.nome_completo }}</p>
+                  {% endif %}
+                </div>
+                {% if not dashboard_comum_somente_pessoal %}
+                <i class="bi bi-chevron-right dashboard-birthday-arrow flex-shrink-0" aria-hidden="true"></i>
+                {% endif %}
+                {% if not dashboard_comum_somente_pessoal %}
                 <a href="{% url 'membros:detalhe' m.pk %}"
                    class="stretched-link"
                    aria-label="Ver perfil"></a>
@@ -39,7 +81,10 @@
             {% endfor %}
           </ul>
         {% else %}
-          <p class="text-muted small mb-0 py-3 text-center">Nenhum aniversariante neste mês com data cadastrada.</p>
+          <div class="dashboard-birthday-empty text-center py-4">
+            <i class="bi bi-calendar-event" aria-hidden="true"></i>
+            <p class="text-muted small mb-0 mt-2">Nenhum aniversariante neste mês com data cadastrada.</p>
+          </div>
         {% endif %}
       </div>
     </div>

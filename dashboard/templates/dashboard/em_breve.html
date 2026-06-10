@@ -1,0 +1,19 @@
+{% extends "base.html" %}
+{% block title %}{{ titulo }}{% endblock %}
+{% block page_title %}
+  <span class="mobile-gradient-title">
+    <span class="mobile-gradient-title__icon"><i class="bi {{ icone }}" aria-hidden="true"></i></span>
+    <span>{{ titulo }}</span>
+  </span>
+{% endblock %}
+
+{% block content %}
+<div class="mobile-gradient-page d-flex align-items-center justify-content-center" style="min-height: min(60vh, 32rem);">
+  <div class="card border-0 shadow-sm w-100" style="max-width: 34rem;">
+    <div class="card-body text-center p-5">
+      <h2 class="h5 fw-bold text-dark mb-2">{{ titulo }}</h2>
+      <p class="text-muted mb-0">Em breve...</p>
+    </div>
+  </div>
+</div>
+{% endblock %}

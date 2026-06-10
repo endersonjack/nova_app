@@ -5,15 +5,15 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <link rel="stylesheet" href="{% static 'membros/css/membro_detalhe.css' %}" />
+  <link rel="stylesheet" href="{% static 'membros/css/membro_detalhe.css' %}?v=3" />
 {% endblock %}
 
 {% block content %}
-<div class="membro-detalhe-page" data-membro-pk="{{ membro.pk }}">
+<div class="membro-detalhe-page membro-registro-page" data-membro-pk="{{ membro.pk }}">
   {% include "membros/partials/detalhe/_topbar.html" %}
 
   <div class="container-fluid px-3 px-lg-4 py-4">
-    <div class="row g-4 align-items-start">
+    <div class="row g-4 align-items-start membro-detalhe-desktop-layout">
       <div class="col-12 col-lg-4 col-xl-3">
         {% include "membros/partials/detalhe/_sidebar.html" %}
       </div>
@@ -24,6 +24,7 @@
         </div>
       </div>
     </div>
+    {% include "membros/partials/detalhe/_mobile_stack.html" %}
   </div>
 </div>
 {% endblock %}

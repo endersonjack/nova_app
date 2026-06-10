@@ -6,7 +6,8 @@
 
 {% block extra_css %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
-  <link rel="stylesheet" href="{% static 'membros/css/membro_detalhe.css' %}" />
+  <link rel="stylesheet" href="{% static 'membros/css/membro_detalhe.css' %}?v=3" />
+  <link rel="stylesheet" href="{% static 'usuarios/css/meu_perfil.css' %}?v=6" />
 {% endblock %}
 
 {% block content %}
@@ -15,11 +16,11 @@
     Seu usuário ainda não está vinculado a um cadastro de membro.
   </div>
 {% else %}
-  <div class="membro-detalhe-page" data-membro-pk="{{ membro.pk }}">
+  <div class="membro-detalhe-page meu-perfil-page" data-membro-pk="{{ membro.pk }}">
     {% include "usuarios/partials/_meu_perfil_topbar.html" %}
 
     <div class="container-fluid px-3 px-lg-4 py-4">
-      <div class="row g-4 align-items-start">
+      <div class="row g-4 align-items-start meu-perfil-desktop-layout">
         <div class="col-12 col-lg-4 col-xl-3">
           {% include "usuarios/partials/_meu_perfil_sidebar.html" %}
         </div>
@@ -28,6 +29,21 @@
           <div id="membro-detalhe-main" class="membro-detalhe-main">
             {% include secao_include %}
           </div>
+        </div>
+      </div>
+      <div class="meu-perfil-mobile-stack">
+        {% for slug, template_name in meu_perfil_secoes_lista %}
+          <section class="meu-perfil-mobile-section">
+            {% include template_name with secao_slug=slug %}
+          </section>
+        {% endfor %}
+        <div class="meu-perfil-mobile-actions">
+          <a href="{% url 'meu_perfil_editar_cadastro' %}" class="btn btn-app btn-app-primary btn-sm">
+            <i class="bi bi-pencil-square"></i> Editar Meu Perfil
+          </a>
+          <a href="{% url 'meu_perfil_editar_acesso' %}" class="btn btn-app btn-app-secondary btn-sm">
+            <i class="bi bi-key"></i> Editar Dados de Acesso
+          </a>
         </div>
       </div>
     </div>

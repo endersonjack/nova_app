@@ -1,10 +1,5 @@
 <div class="membro-secao" data-secao="{{ secao_slug }}">
   {% include "membros/partials/detalhe/_secao_header_display.html" with icon="bi-people" titulo="Família" %}
-  {% if meu_perfil_mode %}
-    <div class="alert alert-secondary rounded-3 small mb-3">
-      Estado civil e data de casamento podem ser alterados em Editar Cadastro Membro. Os demais campos s&atilde;o somente visualiza&ccedil;&atilde;o.
-    </div>
-  {% endif %}
   <div class="row g-3">
     <div class="col-md-6">
       <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
