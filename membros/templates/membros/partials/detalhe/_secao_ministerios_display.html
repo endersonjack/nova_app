@@ -1,8 +1,14 @@
 <div class="membro-secao" data-secao="{{ secao_slug }}">
   {% include "membros/partials/detalhe/_secao_header_display.html" with icon="bi-diagram-3" titulo="Ministérios" %}
-  <p class="text-muted small mb-3">Participação em ministérios, equipes ou serviços na igreja.</p>
+  {% if meu_perfil_mode %}
+    <div class="alert alert-secondary rounded-3 small mb-3">
+      Somente visualiza&ccedil;&atilde;o. Qualquer erro, avise ao seu l&iacute;der de minist&eacute;rio.
+    </div>
+  {% else %}
+    <p class="text-muted small mb-3">Participa&ccedil;&atilde;o em minist&eacute;rios, equipes ou servi&ccedil;os na igreja.</p>
+  {% endif %}
   <div class="membro-field-shell border rounded-3 px-3 py-2 membro-info-display">
-    <span class="membro-field-label">Ministérios</span>
+    <span class="membro-field-label">Minist&eacute;rios</span>
     {% if membro.ministerios %}
       <div class="text-dark small mt-1">{{ membro.ministerios|linebreaksbr }}</div>
     {% else %}

@@ -36,15 +36,13 @@
               {% endif %}
             </span>
           </button>
-          <p class="sidebar-user-name text-white fw-semibold mb-0 mt-2 small text-truncate"
-             title="{% if not user.is_authenticated %}Visitante{% elif membro_logado %}{{ membro_logado.nome_completo }} ({{ user.get_username }}){% else %}{{ user.get_username }}{% endif %}">
+          <p class="sidebar-user-name text-white mb-0 mt-2"
+             title="{% if sidebar_user_secondary %}{{ sidebar_user_primary }} - {{ sidebar_user_secondary }}{% else %}{{ sidebar_user_primary }}{% endif %}">
             {% if not user.is_authenticated %}
-              Visitante
-            {% elif membro_logado %}
-              <span class="d-block text-truncate">{{ membro_logado.nome_completo }}</span>
-              <span class="d-block text-truncate fw-normal text-white text-opacity-75" style="font-size: 0.72rem;">{{ user.get_username }}</span>
+              <span class="sidebar-user-primary d-block text-truncate">{{ sidebar_user_primary }}</span>
             {% else %}
-              {{ user.get_username }}
+              <span class="sidebar-user-primary d-block text-truncate">{{ sidebar_user_primary }}</span>
+              <span class="sidebar-user-secondary d-block text-truncate">{{ sidebar_user_secondary }}</span>
             {% endif %}
           </p>
         </div>
@@ -57,6 +55,16 @@
               <span class="sidebar-link-text">Início</span>
             </a>
           </li>
+          {% if user.is_authenticated %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match.url_name == 'meu_perfil' or request.resolver_match.url_name == 'meu_perfil_editar_cadastro' or request.resolver_match.url_name == 'meu_perfil_editar_acesso' %}active{% endif %}"
+               href="{% url 'meu_perfil' %}"
+               title="Meu Perfil">
+              <i class="bi bi-person-circle fs-5"></i>
+              <span class="sidebar-link-text">Meu Perfil</span>
+            </a>
+          </li>
+          {% endif %}
           {% if acesso_modulos.membros.ver %}
           <li class="nav-item">
             <a class="nav-link {% if request.resolver_match and request.resolver_match.namespace == 'membros' and request.resolver_match.url_name == 'membros_index' %}active{% endif %}"

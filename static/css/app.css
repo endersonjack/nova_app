@@ -143,6 +143,20 @@ nav.app-sidebar {
   max-width: 100%;
 }
 
+.sidebar-user-primary {
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.sidebar-user-secondary {
+  margin-top: 0.15rem;
+  font-size: 0.66rem;
+  font-weight: 400;
+  line-height: 1.2;
+  color: rgba(203, 213, 225, 0.72);
+}
+
 .sidebar-footer-account .sidebar-footer-link {
   transition: background-color 0.15s ease;
 }

@@ -24,6 +24,7 @@ from django.urls import include, path, re_path
 from django.views.static import serve
 
 from usuarios.forms import LoginForm
+from usuarios import views as usuarios_views
 
 
 def favicon_view(_request):
@@ -48,6 +49,11 @@ urlpatterns = [
         name='logout',
     ),
     path('', include('dashboard.urls')),
+    path('meu-perfil/', usuarios_views.meu_perfil, name='meu_perfil'),
+    path('meu-perfil/secao/<slug:slug>/', usuarios_views.meu_perfil_secao, name='meu_perfil_secao'),
+    path('meu-perfil/cadastro/', usuarios_views.meu_perfil_editar_cadastro, name='meu_perfil_editar_cadastro'),
+    path('meu-perfil/acesso/', usuarios_views.meu_perfil_editar_acesso, name='meu_perfil_editar_acesso'),
+    path('usuarios/', include('usuarios.urls')),
     path('membros/', include('membros.urls')),
     path('tesouraria/', include('tesouraria.urls', namespace='tesouraria')),
     path('visitantes/', include('visitantes.urls', namespace='visitantes')),
