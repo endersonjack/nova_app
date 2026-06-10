@@ -1,0 +1,68 @@
+<div class="visitante-modal-shell" data-app-modal-size="lg">
+<div class="modal-header border-bottom py-2">
+  <h2 class="modal-title h6 mb-0" id="appModalLabel">{{ titulo }}</h2>
+  <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+</div>
+<form class="app-modal-form visitante-modal-form"
+      method="post"
+      hx-post="{{ action_url }}"
+      hx-target="#app-modal-content"
+      hx-swap="innerHTML"
+      hx-indicator="#app-modal-indicator"
+      hx-disabled-elt="find button[type=submit]">
+  <div class="modal-body visitante-modal-body py-2">
+    {% csrf_token %}
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger rounded-3">{{ form.non_field_errors }}</div>
+    {% endif %}
+    <div class="row g-2">
+      <div class="col-md-9">
+        {% include "visitantes/partials/_form_field.html" with field=form.nome_completo required=True %}
+      </div>
+      <div class="col-md-3">
+        {% include "visitantes/partials/_form_field.html" with field=form.nome_conhecido %}
+      </div>
+      <div class="col-md-3">
+        {% include "visitantes/partials/_form_field.html" with field=form.sexo required=True %}
+      </div>
+      <div class="col-md-3">
+        {% include "visitantes/partials/_form_field.html" with field=form.telefone %}
+      </div>
+      <div class="col-md-6">
+        {% include "visitantes/partials/_form_field.html" with field=form.membro_acompanha %}
+      </div>
+      <div class="col-12">
+        {% include "visitantes/partials/_form_field.html" with field=form.endereco %}
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <div class="form-check mb-2">
+          {{ form.convertido }}
+          <label class="form-check-label" for="{{ form.convertido.id_for_label }}">{{ form.convertido.label }}</label>
+          {% for err in form.convertido.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-md-2 d-flex align-items-end">
+        <div class="form-check mb-2">
+          {{ form.batizado }}
+          <label class="form-check-label" for="{{ form.batizado.id_for_label }}">{{ form.batizado.label }}</label>
+          {% for err in form.batizado.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+        </div>
+      </div>
+      <div class="col-md-8">
+        {% include "visitantes/partials/_form_field.html" with field=form.denominacao %}
+      </div>
+      <div class="col-12">
+        {% include "visitantes/partials/_form_field.html" with field=form.conheceu_por %}
+      </div>
+      <div class="col-12">
+        {% include "visitantes/partials/_form_field.html" with field=form.observacoes %}
+      </div>
+    </div>
+  </div>
+  <div class="modal-footer border-top px-3 py-2 flex-wrap gap-2">
+    <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
+    <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">Cancelar</button>
+    <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3">Salvar</button>
+  </div>
+</form>
+</div>

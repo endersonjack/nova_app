@@ -1,0 +1,13 @@
+<a href="{% url 'visitantes:lista_partial' %}?{{ link }}"
+   class="visitante-lista-sort-link text-dark text-decoration-none d-inline-flex align-items-center gap-1"
+   hx-get="{% url 'visitantes:lista_partial' %}?{{ link }}"
+   hx-target="#visitante-lista-wrap"
+   hx-swap="innerHTML"
+   hx-indicator="#visitante-lista-indicator">
+  <span>{{ label }}</span>
+  {% if sort == coluna %}
+    {% if dir == 'asc' %}<i class="bi bi-sort-up" aria-hidden="true"></i>{% else %}<i class="bi bi-sort-down" aria-hidden="true"></i>{% endif %}
+  {% else %}
+    <i class="bi bi-arrow-down-up text-muted opacity-50" aria-hidden="true"></i>
+  {% endif %}
+</a>

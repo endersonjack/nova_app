@@ -319,6 +319,20 @@ nav.app-sidebar {
   gap: 0.4rem !important;
 }
 
+.btn-app > .bi {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.btn-app .app-btn-inline-indicator {
+  position: absolute;
+  left: 0.75rem;
+  width: 1rem;
+  height: 1rem;
+}
+
 /* Primário: fundo azul, texto branco, ícone à esquerda do texto */
 .btn-app-primary {
   background-color: var(--app-btn-blue) !important;

@@ -139,7 +139,13 @@ class TamanhoCamisa(models.Model):
         return self.descricao
 
 
-class MembroAtivosManager(models.Manager):
+class MembroQuerySet(models.QuerySet):
+    def delete(self):
+        updated = self.update(ativo=False)
+        return updated, {self.model._meta.label: updated}
+
+
+class MembroAtivosManager(models.Manager.from_queryset(MembroQuerySet)):
     """Listagens e pesquisas usam só membros com `ativo=True`."""
 
     def get_queryset(self):
@@ -280,7 +286,7 @@ class Membro(models.Model):
     )
 
     objects = MembroAtivosManager()
-    todos = models.Manager()
+    todos = MembroQuerySet.as_manager()
 
     class Meta:
         verbose_name = _('Membro')
@@ -379,6 +385,13 @@ class Membro(models.Model):
             Membro.todos.filter(pk=new_pid, casado_com_id=self.pk).update(
                 casado_com=None,
             )
+
+    def delete(self, using=None, keep_parents=False):
+        if self.pk is None:
+            raise ValueError('Membro object cannot be deleted because its id is None.')
+        self.ativo = False
+        self.save(update_fields=['ativo'])
+        return 1, {self._meta.label: 1}
 
     @property
     def cpf_formatado(self) -> str:

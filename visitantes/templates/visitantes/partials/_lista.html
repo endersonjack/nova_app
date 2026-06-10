@@ -1,0 +1,124 @@
+<div class="visitante-lista-root card border-0 shadow-sm"
+     data-list-query="{{ list_query_string }}">
+  <div class="card-body py-3 border-bottom border-light">
+    <label for="visitante-lista-busca" class="form-label small fw-semibold text-dark mb-1">Buscar visitante</label>
+    <input id="visitante-lista-busca"
+           type="search"
+           name="q"
+           value="{{ q }}"
+           class="form-control rounded-3"
+           placeholder="Nome, telefone ou membro que acompanha…"
+           autocomplete="off"
+           maxlength="200"
+           hx-get="{% url 'visitantes:lista_partial' %}"
+           hx-include="this,#visitante-lista-params"
+           hx-vals='{"page": "1"}'
+           hx-target="#visitante-lista-wrap"
+           hx-swap="innerHTML"
+           hx-indicator="#visitante-lista-indicator"
+           hx-trigger="keyup changed delay:400ms, search" />
+    <div id="visitante-lista-params" class="d-none" aria-hidden="true">
+      <input type="hidden" name="sort" value="{{ sort }}" />
+      <input type="hidden" name="dir" value="{{ dir }}" />
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-hover align-middle mb-0">
+        <thead class="table-light">
+          <tr>
+            <th class="text-center text-muted small fw-semibold" style="width:3rem;" scope="col">#</th>
+            <th scope="col">
+              {% include "visitantes/partials/_sort_link.html" with link=link_sort_nome coluna="nome" label="Nome" %}
+            </th>
+            <th scope="col">
+              {% include "visitantes/partials/_sort_link.html" with link=link_sort_telefone coluna="telefone" label="Telefone" %}
+            </th>
+            <th scope="col">
+              {% include "visitantes/partials/_sort_link.html" with link=link_sort_membro coluna="membro" label="Membro que acompanha" %}
+            </th>
+            <th scope="col">Conheceu por</th>
+            <th scope="col">
+              {% include "visitantes/partials/_sort_link.html" with link=link_sort_cadastro coluna="cadastro" label="Cadastro" %}
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for visitante in visitantes %}
+          <tr class="visitante-lista-row"
+              role="link"
+              tabindex="0"
+              data-href="{% url 'visitantes:detalhe' visitante.pk %}"
+              aria-label="Abrir registro de {{ visitante.nome_completo|escape }}">
+            <td class="text-center text-muted small">{{ page_obj.start_index|add:forloop.counter0 }}</td>
+            <td>
+              <div class="d-flex align-items-center gap-2 min-w-0">
+                <span class="visitante-lista-avatar" aria-hidden="true"><i class="bi bi-person"></i></span>
+                <div class="min-w-0">
+                  <span class="fw-medium text-dark text-truncate text-uppercase d-block">{{ visitante.nome_completo }}</span>
+                  {% if visitante.nome_conhecido %}
+                    <span class="text-muted small text-truncate d-block">{{ visitante.nome_conhecido }}</span>
+                  {% endif %}
+                </div>
+              </div>
+            </td>
+            <td class="text-muted small">{{ visitante.telefone_formatado|default:"—" }}</td>
+            <td class="text-muted small">{{ visitante.membro_acompanha|default:"—" }}</td>
+            <td class="text-muted small">{% if visitante.conheceu_por %}{{ visitante.get_conheceu_por_display }}{% else %}—{% endif %}</td>
+            <td class="text-muted small">{{ visitante.criado_em|date:"d/m/Y H:i" }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="6" class="text-center text-muted py-5">
+              {% if q %}Nenhum visitante encontrado para esta busca.{% else %}Nenhum visitante cadastrado.{% endif %}
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+  {% if page_obj.paginator.count %}
+  <div class="card-footer bg-body-secondary bg-opacity-25 border-top-0 py-3">
+    <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-3">
+      <p class="small text-muted mb-0">
+        Mostrando <span class="fw-semibold text-dark">{{ page_obj.start_index }}–{{ page_obj.end_index }}</span>
+        de <span class="fw-semibold text-dark">{{ page_obj.paginator.count }}</span>
+      </p>
+      {% if page_obj.has_other_pages %}
+        <nav aria-label="Paginação da lista de visitantes">
+          <ul class="pagination pagination-sm mb-0">
+            <li class="page-item{% if not page_obj.has_previous %} disabled{% endif %}">
+              {% if page_obj.has_previous %}
+                <a class="page-link rounded-pill"
+                   href="{% url 'visitantes:lista_partial' %}?{{ link_page_prev }}"
+                   hx-get="{% url 'visitantes:lista_partial' %}?{{ link_page_prev }}"
+                   hx-target="#visitante-lista-wrap"
+                   hx-swap="innerHTML"
+                   hx-indicator="#visitante-lista-indicator">Anterior</a>
+              {% else %}
+                <span class="page-link rounded-pill disabled">Anterior</span>
+              {% endif %}
+            </li>
+            <li class="page-item disabled px-2 d-flex align-items-center">
+              <span class="page-link border-0 bg-transparent text-dark small">Página {{ page_obj.number }} / {{ page_obj.paginator.num_pages }}</span>
+            </li>
+            <li class="page-item{% if not page_obj.has_next %} disabled{% endif %}">
+              {% if page_obj.has_next %}
+                <a class="page-link rounded-pill"
+                   href="{% url 'visitantes:lista_partial' %}?{{ link_page_next }}"
+                   hx-get="{% url 'visitantes:lista_partial' %}?{{ link_page_next }}"
+                   hx-target="#visitante-lista-wrap"
+                   hx-swap="innerHTML"
+                   hx-indicator="#visitante-lista-indicator">Próxima</a>
+              {% else %}
+                <span class="page-link rounded-pill disabled">Próxima</span>
+              {% endif %}
+            </li>
+          </ul>
+        </nav>
+      {% endif %}
+    </div>
+  </div>
+  {% endif %}
+</div>

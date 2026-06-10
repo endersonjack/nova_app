@@ -1,0 +1,88 @@
+.visitante-lista-sort-link:hover {
+  color: var(--bs-primary) !important;
+}
+
+.visitante-lista-row {
+  cursor: pointer;
+}
+
+.visitante-lista-row:focus-visible {
+  outline: 2px solid #0d6efd;
+  outline-offset: -2px;
+}
+
+.visitante-lista-avatar {
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 50%;
+  background: #f1f5f9;
+  border: 2px solid #e2e8f0;
+  color: #64748b;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 1rem;
+}
+
+.visitante-detalhe-photo {
+  width: 4.5rem;
+  height: 4.5rem;
+}
+
+.visitante-field-shell {
+  background: #fff;
+}
+
+.visitante-field-label {
+  display: block;
+  font-size: 0.74rem;
+  line-height: 1.1;
+  font-weight: 700;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  margin-bottom: 0.25rem;
+}
+
+.white-space-pre-line {
+  white-space: pre-line;
+}
+
+.visitante-modal-shell {
+  display: flex;
+  flex-direction: column;
+  max-height: min(88vh, 42rem);
+}
+
+.visitante-modal-form {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 auto;
+  flex-direction: column;
+}
+
+.visitante-modal-body {
+  min-height: 0;
+  overflow-y: auto;
+}
+
+.visitante-modal-form .form-label {
+  font-size: 0.8rem;
+}
+
+.visitante-modal-form .form-control,
+.visitante-modal-form .form-select {
+  min-height: 2.25rem;
+  padding-top: 0.35rem;
+  padding-bottom: 0.35rem;
+}
+
+.visitante-modal-form textarea.form-control {
+  min-height: 4.75rem;
+}
+
+.visitante-modal-form .form-text {
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+}

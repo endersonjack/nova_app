@@ -44,12 +44,12 @@
           </button>
           <ul class="dropdown-menu dropdown-menu-end shadow border-0 mt-1">
             <li>
-              <button type="button"
+                      <button type="button"
                       class="dropdown-item text-danger d-flex align-items-center gap-2"
                       hx-get="{% url 'membros:modal_delete_confirm' membro.pk %}"
                       hx-target="#app-modal-content"
                       hx-swap="innerHTML">
-                <i class="bi bi-trash"></i> Excluir
+                <i class="bi bi-slash-circle"></i> Desativar
               </button>
             </li>
           </ul>

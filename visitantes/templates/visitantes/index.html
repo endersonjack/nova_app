@@ -1,0 +1,44 @@
+{% extends "base.html" %}
+{% load static %}
+{% block title %}Visitantes{% endblock %}
+{% block page_title %}Visitantes{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'visitantes/css/visitantes.css' %}" />
+{% endblock %}
+
+{% block content %}
+<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+  <p class="text-muted mb-0">Cadastro de visitantes da igreja.</p>
+  {% if acesso_modulos.visitantes.editar %}
+  <button type="button"
+          class="btn btn-app btn-app-primary btn-sm px-3 d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0 position-relative"
+          hx-get="{% url 'visitantes:modal_create' %}"
+          hx-target="#app-modal-content"
+          hx-swap="innerHTML"
+          hx-indicator="#btn-novo-visitante-ind">
+    <span id="btn-novo-visitante-ind" class="app-btn-inline-indicator htmx-indicator spinner-border spinner-border-sm" role="status"></span>
+    <i class="bi bi-door-open" aria-hidden="true"></i>
+    <span>Novo visitante</span>
+  </button>
+  {% endif %}
+</div>
+
+<div class="position-relative">
+  <span id="visitante-lista-indicator" class="htmx-indicator position-absolute top-0 end-0 mt-n1 me-1 z-2" aria-hidden="true">
+    <span class="spinner-border spinner-border-sm text-primary" role="status"></span>
+  </span>
+  <div id="visitante-lista-wrap"
+       data-lista-url="{% url 'visitantes:lista_partial' %}"
+       hx-get="{% url 'visitantes:lista_partial' %}"
+       hx-trigger="load, refresh from:body"
+       hx-swap="innerHTML"
+       hx-indicator="#visitante-lista-indicator">
+    {% include "visitantes/partials/_skeleton.html" %}
+  </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="{% static 'visitantes/js/visitantes.js' %}"></script>
+{% endblock %}

@@ -115,6 +115,7 @@ INSTALLED_APPS = [
     'dashboard',
     'membros',
     'tesouraria',
+    'visitantes',
     'auditoria',
     'django_htmx',
 ]

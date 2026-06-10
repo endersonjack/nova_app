@@ -19,13 +19,14 @@
   </p>
   {% if acesso_modulos.membros.editar %}
   <button type="button"
-          class="btn btn-app btn-app-primary px-4 position-relative"
+          class="btn btn-app btn-app-primary btn-sm px-3 d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0 position-relative"
           hx-get="{% url 'membros:modal_create' %}"
           hx-target="#app-modal-content"
           hx-swap="innerHTML"
           hx-indicator="#btn-novo-membro-ind">
-    <span id="btn-novo-membro-ind" class="htmx-indicator spinner-border spinner-border-sm me-1" role="status"></span>
-    <i class="bi bi-person-plus me-1"></i> Novo membro
+    <span id="btn-novo-membro-ind" class="app-btn-inline-indicator htmx-indicator spinner-border spinner-border-sm" role="status"></span>
+    <i class="bi bi-person-plus" aria-hidden="true"></i>
+    <span>Novo membro</span>
   </button>
   {% endif %}
 </div>

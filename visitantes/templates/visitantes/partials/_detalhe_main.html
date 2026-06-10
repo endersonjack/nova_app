@@ -1,0 +1,83 @@
+<div class="card border-0 shadow-sm">
+  <div class="card-body p-3 p-lg-4">
+    <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+      <div>
+        <p class="small fw-semibold text-dark mb-0"><i class="bi bi-person-vcard me-1"></i> Dados do visitante</p>
+        <p class="text-muted small mb-0">Informações de contato, acompanhamento e cadastro.</p>
+      </div>
+      {% if acesso_modulos.visitantes.editar %}
+      <button type="button"
+              class="btn btn-app btn-app-secondary btn-sm"
+              hx-get="{% url 'visitantes:modal_edit' visitante.pk %}"
+              hx-target="#app-modal-content"
+              hx-swap="innerHTML">
+        <i class="bi bi-pencil-square me-1"></i> Editar
+      </button>
+      {% endif %}
+    </div>
+
+    <div class="row g-3">
+      <div class="col-md-3">
+        {% if visitante.ativo %}
+          {% include "visitantes/partials/_field.html" with label="Status" value="Ativo" %}
+        {% else %}
+          {% include "visitantes/partials/_field.html" with label="Status" value="Desativado" %}
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        {% include "visitantes/partials/_field.html" with label="Nome completo" value=visitante.nome_completo %}
+      </div>
+      <div class="col-md-3">
+        {% include "visitantes/partials/_field.html" with label="Conhecido por" value=visitante.nome_conhecido %}
+      </div>
+      <div class="col-md-4">
+        {% include "visitantes/partials/_field.html" with label="Sexo" value=visitante.get_sexo_display %}
+      </div>
+      <div class="col-md-4">
+        {% include "visitantes/partials/_field.html" with label="Telefone" value=visitante.telefone_formatado %}
+      </div>
+      <div class="col-md-4">
+        {% include "visitantes/partials/_field.html" with label="Membro que acompanha" value=visitante.membro_acompanha %}
+      </div>
+      <div class="col-md-6">
+        {% if visitante.conheceu_por %}
+          {% include "visitantes/partials/_field.html" with label="Conheceu a igreja por" value=visitante.get_conheceu_por_display %}
+        {% else %}
+          {% include "visitantes/partials/_field.html" with label="Conheceu a igreja por" value="" %}
+        {% endif %}
+      </div>
+      <div class="col-md-3">
+        {% if visitante.convertido %}
+          {% include "visitantes/partials/_field.html" with label="É convertido?" value="Sim" %}
+        {% else %}
+          {% include "visitantes/partials/_field.html" with label="É convertido?" value="Não" %}
+        {% endif %}
+      </div>
+      <div class="col-md-3">
+        {% if visitante.batizado %}
+          {% include "visitantes/partials/_field.html" with label="É batizado?" value="Sim" %}
+        {% else %}
+          {% include "visitantes/partials/_field.html" with label="É batizado?" value="Não" %}
+        {% endif %}
+      </div>
+      <div class="col-md-6">
+        {% include "visitantes/partials/_field.html" with label="Denominação" value=visitante.denominacao %}
+      </div>
+      <div class="col-md-6">
+        {% include "visitantes/partials/_field.html" with label="Usuário que cadastrou" value=visitante.criado_por %}
+      </div>
+      <div class="col-12">
+        {% include "visitantes/partials/_field.html" with label="Endereço" value=visitante.endereco multiline=True %}
+      </div>
+      <div class="col-12">
+        {% include "visitantes/partials/_field.html" with label="Obs" value=visitante.observacoes multiline=True %}
+      </div>
+      <div class="col-md-6">
+        {% include "visitantes/partials/_field.html" with label="Data/hora do cadastro" value=visitante.criado_em|date:"d/m/Y H:i" %}
+      </div>
+      <div class="col-md-6">
+        {% include "visitantes/partials/_field.html" with label="Última atualização" value=visitante.atualizado_em|date:"d/m/Y H:i" %}
+      </div>
+    </div>
+  </div>
+</div>

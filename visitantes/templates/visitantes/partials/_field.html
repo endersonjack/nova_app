@@ -1,0 +1,12 @@
+<div class="visitante-field-shell border rounded-3 px-3 py-2 h-100">
+  <span class="visitante-field-label">{{ label }}</span>
+  {% if value %}
+    {% if multiline %}
+      <p class="mb-0 text-dark white-space-pre-line">{{ value|linebreaksbr }}</p>
+    {% else %}
+      <p class="mb-0 text-dark">{{ value }}</p>
+    {% endif %}
+  {% else %}
+    <p class="mb-0 text-muted">—</p>
+  {% endif %}
+</div>

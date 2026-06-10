@@ -87,10 +87,12 @@
           {% endif %}
           {% if acesso_modulos.visitantes.ver %}
           <li class="nav-item">
-            <span class="nav-link text-white text-opacity-50 pe-none" title="Em breve">
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.namespace == 'visitantes' %}active{% endif %}"
+               href="{% url 'visitantes:index' %}"
+               title="Visitantes">
               <i class="bi bi-door-open fs-5"></i>
               <span class="sidebar-link-text">Visitantes</span>
-            </span>
+            </a>
           </li>
           {% endif %}
           {% if acesso_modulos.seminario.ver %}

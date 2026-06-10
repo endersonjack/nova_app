@@ -50,6 +50,7 @@ urlpatterns = [
     path('', include('dashboard.urls')),
     path('membros/', include('membros.urls')),
     path('tesouraria/', include('tesouraria.urls', namespace='tesouraria')),
+    path('visitantes/', include('visitantes.urls', namespace='visitantes')),
     path('auditoria/', include('auditoria.urls', namespace='auditoria')),
 ]
 

@@ -474,5 +474,5 @@ def membro_delete(request, pk):
     membro = get_object_or_404(_membro_queryset(request), pk=pk)
     membro.ativo = False
     membro.save(update_fields=['ativo'])
-    messages.success(request, _('Membro inativado. Deixou de aparecer nas listagens e pesquisas.'))
+    messages.success(request, _('Membro desativado. Deixou de aparecer nas listagens e pesquisas.'))
     return _hx_redirect(reverse('membros:membros_index'))
