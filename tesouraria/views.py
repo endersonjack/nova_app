@@ -1,9 +1,12 @@
 import json
+from calendar import monthrange
 from collections import defaultdict
+from datetime import date
 from decimal import Decimal
 from urllib.parse import urlparse
 
 from django import forms
+from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.db.models import DecimalField, Q, Sum, Value
 from django.db.models.functions import Coalesce
@@ -38,6 +41,39 @@ from .models import (
     TipoContaFinanceira,
 )
 from .pdf_relatorio_competencia import build_competencia_relatorio_pdf
+
+
+MESES_PT_ABREV = (
+    '',
+    'Jan',
+    'Fev',
+    'Mar',
+    'Abr',
+    'Mai',
+    'Jun',
+    'Jul',
+    'Ago',
+    'Set',
+    'Out',
+    'Nov',
+    'Dez',
+)
+
+MESES_PT = (
+    '',
+    'Janeiro',
+    'Fevereiro',
+    'Março',
+    'Abril',
+    'Maio',
+    'Junho',
+    'Julho',
+    'Agosto',
+    'Setembro',
+    'Outubro',
+    'Novembro',
+    'Dezembro',
+)
 
 
 def _agregados_por_conta_na_competencia(
@@ -210,10 +246,169 @@ def _salvando_competencia_na_pagina_detalhe(request, competencia_pk: int) -> boo
     return path == detalhe
 
 
+def _membro_logado(user):
+    perfil = getattr(user, 'perfil', None)
+    if not perfil or not perfil.membro_id:
+        return None
+    return perfil.membro
+
+
+def _conjuge_entradas_disponivel(membro):
+    if not membro or not membro.pk or not membro.casado_com_id:
+        return None
+    return membro.casado_com
+
+
+def _incluir_conjuge_param(request, membro) -> bool:
+    return bool(_conjuge_entradas_disponivel(membro) and request.GET.get('conjuge') == '1')
+
+
+def _minhas_entradas_base_qs(membro, *, incluir_conjuge=False):
+    if not membro:
+        return LancamentoFinanceiro.objects.none()
+    membros_ids = [membro.pk]
+    conjuge = _conjuge_entradas_disponivel(membro)
+    if incluir_conjuge and conjuge:
+        membros_ids.append(conjuge.pk)
+    return LancamentoFinanceiro.objects.filter(
+        tipo=TipoCategoriaFinanceira.ENTRADA,
+        membro_id__in=membros_ids,
+    ).select_related('competencia', 'conta', 'categoria', 'evento', 'membro')
+
+
+def _month_add(year: int, month: int, delta: int) -> tuple[int, int]:
+    total = year * 12 + (month - 1) + delta
+    return total // 12, (total % 12) + 1
+
+
+def _month_bounds(year: int, month: int) -> tuple[date, date]:
+    return date(year, month, 1), date(year, month, monthrange(year, month)[1])
+
+
+def _minhas_entradas_chart_payload(qs_base, hoje: date) -> dict:
+    months = [_month_add(hoje.year, hoje.month, i) for i in range(-11, 1)]
+    valores: dict[tuple[int, int], Decimal] = {}
+    for year, month in months:
+        inicio, fim = _month_bounds(year, month)
+        valores[(year, month)] = (
+            qs_base.filter(data__gte=inicio, data__lte=fim).aggregate(
+                total=Coalesce(
+                    Sum('valor'),
+                    Value(Decimal('0')),
+                    output_field=DecimalField(max_digits=12, decimal_places=2),
+                )
+            )['total']
+            or Decimal('0')
+        )
+
+    return {
+        'labels': [f'{MESES_PT_ABREV[month]}/{str(year)[2:]}' for year, month in months],
+        'values': [float(valores[(year, month)]) for year, month in months],
+        'total_periodo': sum(valores.values(), Decimal('0')),
+    }
+
+
+def _minhas_entradas_table_context(request, qs_base, hoje: date) -> dict:
+    selected_year = hoje.year
+    raw_year = (request.GET.get('ano') or '').strip()
+    if raw_year.isdigit():
+        selected_year = int(raw_year)
+
+    selected_month = hoje.month
+    raw_month = (request.GET.get('mes') or '').strip()
+    if 'mes' in request.GET and raw_month == '':
+        selected_month = None
+    if raw_month.isdigit() and 1 <= int(raw_month) <= 12:
+        selected_month = int(raw_month)
+
+    years = [d.year for d in qs_base.dates('data', 'year', order='DESC')]
+    if selected_year not in years:
+        years.insert(0, selected_year)
+    if hoje.year not in years:
+        years.insert(0, hoje.year)
+    years = sorted(set(years), reverse=True)
+
+    qs_table = qs_base.filter(data__year=selected_year)
+    if selected_month:
+        qs_table = qs_table.filter(data__month=selected_month)
+
+    monthly_sections = []
+    meses = [selected_month] if selected_month else list(range(1, 13))
+    for month in meses:
+        lancamentos = list(
+            qs_table.filter(data__month=month).order_by('data', 'id')
+        )
+        total = sum((l.valor for l in lancamentos), Decimal('0'))
+        monthly_sections.append(
+            {
+                'month': month,
+                'label': MESES_PT[month],
+                'lancamentos': lancamentos,
+                'total': total,
+            }
+        )
+
+    return {
+        'selected_month': selected_month,
+        'selected_year': selected_year,
+        'months': [(i, MESES_PT[i]) for i in range(1, 13)],
+        'years': years,
+        'monthly_sections': monthly_sections,
+        'total_filtrado': sum((s['total'] for s in monthly_sections), Decimal('0')),
+    }
+
+
 @requer_modulo('tesouraria', edicao=False)
 @require_http_methods(['GET'])
 def index(request):
     return render(request, 'tesouraria/index.html')
+
+
+@login_required
+@require_http_methods(['GET'])
+def minhas_entradas(request):
+    membro = _membro_logado(request.user)
+    hoje = date.today()
+    incluir_conjuge = _incluir_conjuge_param(request, membro)
+    conjuge = _conjuge_entradas_disponivel(membro)
+    qs_base = _minhas_entradas_base_qs(membro, incluir_conjuge=incluir_conjuge)
+    chart = _minhas_entradas_chart_payload(qs_base, hoje)
+    table_ctx = _minhas_entradas_table_context(request, qs_base, hoje)
+    return render(
+        request,
+        'tesouraria/minhas_entradas.html',
+        {
+            'membro': membro,
+            'conjuge_entradas': conjuge,
+            'incluir_conjuge': incluir_conjuge,
+            'chart': chart,
+            **table_ctx,
+        },
+    )
+
+
+@login_required
+@require_http_methods(['GET'])
+def minhas_entradas_tabela(request):
+    membro = _membro_logado(request.user)
+    hoje = date.today()
+    incluir_conjuge = _incluir_conjuge_param(request, membro)
+    conjuge = _conjuge_entradas_disponivel(membro)
+    qs_base = _minhas_entradas_base_qs(membro, incluir_conjuge=incluir_conjuge)
+    ctx = _minhas_entradas_table_context(request, qs_base, hoje)
+    ctx.update(
+        {
+            'conjuge_entradas': conjuge,
+            'incluir_conjuge': incluir_conjuge,
+            'chart': _minhas_entradas_chart_payload(qs_base, hoje),
+            'chart_oob': True,
+        }
+    )
+    return render(
+        request,
+        'tesouraria/partials/_minhas_entradas_tabela.html',
+        ctx,
+    )
 
 
 @requer_modulo('tesouraria', edicao=False)

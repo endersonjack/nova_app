@@ -1,0 +1,95 @@
+{% load tesouraria_money %}
+
+<form method="get"
+      id="minhas-entradas-table-filter"
+      class="card border-0 shadow-sm minhas-entradas-filter"
+      hx-get="{% url 'tesouraria:minhas_entradas_tabela' %}"
+      hx-target="#minhas-entradas-table-wrap"
+      hx-swap="innerHTML"
+      hx-indicator="#minhas-entradas-table-indicator"
+      hx-include="#minhas-entradas-conjuge">
+  <div class="card-body">
+    <div class="row g-2 align-items-end">
+      <div class="col-12 col-sm-5">
+        <label class="form-label small fw-semibold" for="filtro-mes">Mês</label>
+        <select class="form-select" id="filtro-mes" name="mes">
+          <option value="" {% if selected_month is None %}selected{% endif %}>Todos</option>
+          {% for m, label in months %}
+            <option value="{{ m }}" {% if m == selected_month %}selected{% endif %}>{{ label }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-sm-4">
+        <label class="form-label small fw-semibold" for="filtro-ano">Ano</label>
+        <select class="form-select" id="filtro-ano" name="ano">
+          {% for year in years %}
+            <option value="{{ year }}" {% if year == selected_year %}selected{% endif %}>{{ year }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="col-12 col-sm-3">
+        <button type="submit" class="btn btn-app btn-app-primary w-100">Filtrar</button>
+      </div>
+    </div>
+  </div>
+</form>
+
+<section class="card border-0 shadow-sm minhas-entradas-card">
+  <div class="card-body">
+    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-3">
+      <div>
+        <h3 class="h6 fw-bold text-dark mb-1">Minhas entradas</h3>
+        <p class="text-muted small mb-0">
+          {% if selected_month %}{{ monthly_sections.0.label }} de {{ selected_year }}{% else %}Lançamentos de {{ selected_year }} separados por mês{% endif %}.
+        </p>
+      </div>
+      <div class="minhas-entradas-total minhas-entradas-total--sm">
+        <span>Total filtrado</span>
+        <strong>{{ total_filtrado|moeda_brl }}</strong>
+      </div>
+    </div>
+
+    {% for secao in monthly_sections %}
+      <div class="minhas-entradas-month">
+        <div class="minhas-entradas-month__title">
+          <span>{{ secao.label }}</span>
+          <strong>{{ secao.total|moeda_brl }}</strong>
+        </div>
+        <div class="table-responsive">
+          <table class="table table-sm align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Dia</th>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th>Evento</th>
+                {% if incluir_conjuge %}<th>Membro</th>{% endif %}
+                <th class="text-end">Valor</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for lan in secao.lancamentos %}
+                <tr>
+                  <td class="text-muted text-nowrap">{{ lan.data|date:"d/m" }}</td>
+                  <td class="fw-medium text-dark">{{ lan.descricao|default:"—" }}</td>
+                  <td class="text-muted">{{ lan.categoria.nome }}</td>
+                  <td class="text-muted">{% if lan.evento_id %}{{ lan.evento.nome }}{% else %}—{% endif %}</td>
+                  {% if incluir_conjuge %}<td class="text-muted">{{ lan.membro.nome_completo|default:"—" }}</td>{% endif %}
+                  <td class="text-end fw-semibold text-nowrap">{{ lan.valor|moeda_brl }}</td>
+                </tr>
+              {% empty %}
+                <tr>
+                  <td colspan="{% if incluir_conjuge %}6{% else %}5{% endif %}" class="text-center text-muted small py-3">Nenhuma entrada neste mês.</td>
+                </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</section>
+
+{% if chart_oob %}
+  {% include "tesouraria/partials/_minhas_entradas_chart.html" with chart_oob=True %}
+{% endif %}

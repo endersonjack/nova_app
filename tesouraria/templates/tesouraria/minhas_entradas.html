@@ -1,0 +1,77 @@
+{% extends "base.html" %}
+{% load static tesouraria_money %}
+
+{% block title %}Minhas Entradas{% endblock %}
+{% block page_title %}
+  <span class="mobile-gradient-title">
+    <span class="mobile-gradient-title__icon"><i class="bi bi-cash-stack" aria-hidden="true"></i></span>
+    <span>Minhas Entradas</span>
+  </span>
+{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'tesouraria/css/minhas_entradas.css' %}?v=4">
+{% endblock %}
+
+{% block content %}
+<div class="mobile-gradient-page minhas-entradas-page">
+  {% if not membro %}
+    <div class="alert alert-warning rounded-3 mb-0">
+      Seu usuário ainda não está vinculado a um cadastro de membro.
+    </div>
+  {% else %}
+    <div class="minhas-entradas-head">
+      <div>
+        <p class="text-muted small mb-1">Entradas vinculadas ao seu cadastro</p>
+        <h2 class="h5 fw-bold text-dark mb-0">{{ membro.nome_completo }}</h2>
+      </div>
+      {% if conjuge_entradas %}
+        <form class="minhas-entradas-conjuge-form"
+              hx-get="{% url 'tesouraria:minhas_entradas_tabela' %}"
+              hx-target="#minhas-entradas-table-wrap"
+              hx-swap="innerHTML"
+              hx-indicator="#minhas-entradas-conjuge-indicator,#minhas-entradas-table-indicator"
+              hx-include="#minhas-entradas-table-filter"
+              hx-trigger="change from:#minhas-entradas-conjuge">
+          <div class="d-flex align-items-center gap-2">
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input"
+                     type="checkbox"
+                     role="switch"
+                     id="minhas-entradas-conjuge"
+                     name="conjuge"
+                     value="1"
+                     {% if incluir_conjuge %}checked{% endif %}>
+              <label class="form-check-label fw-semibold small" for="minhas-entradas-conjuge">
+                Adicionar entradas do cônjuge
+                <span class="text-muted fw-normal">({{ conjuge_entradas.nome_completo }})</span>
+              </label>
+            </div>
+            <span id="minhas-entradas-conjuge-indicator"
+                  class="htmx-indicator spinner-border spinner-border-sm text-primary"
+                  role="status"
+                  aria-hidden="true"></span>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+
+    {% include "tesouraria/partials/_minhas_entradas_chart.html" %}
+
+    <div class="position-relative">
+      <span id="minhas-entradas-table-indicator"
+            class="htmx-indicator position-absolute top-0 end-0 mt-2 me-2 spinner-border spinner-border-sm text-primary z-1"
+            role="status"
+            aria-hidden="true"></span>
+      <div id="minhas-entradas-table-wrap">
+        {% include "tesouraria/partials/_minhas_entradas_tabela.html" %}
+      </div>
+    </div>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <script src="{% static 'tesouraria/js/minhas_entradas_chart.js' %}?v=2"></script>
+{% endblock %}

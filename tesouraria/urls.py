@@ -6,6 +6,12 @@ app_name = 'tesouraria'
 
 urlpatterns = [
     path('', views.index, name='index'),
+    path('minhas-entradas/', views.minhas_entradas, name='minhas_entradas'),
+    path(
+        'minhas-entradas/tabela/',
+        views.minhas_entradas_tabela,
+        name='minhas_entradas_tabela',
+    ),
     path(
         'membros/autocomplete/lancamento/',
         views.membro_autocomplete_lancamento,

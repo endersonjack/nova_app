@@ -92,7 +92,7 @@
             </a>
           </li>
           {% endif %}
-          {% if acesso_modulos.tesouraria.ver %}
+          {% if acesso_modulos.tesouraria.ver and perfil_usuario.papel != 'comum' %}
           <li class="nav-item">
             <a class="nav-link {% if request.resolver_match and request.resolver_match.namespace == 'tesouraria' %}active{% endif %}"
                href="{% url 'tesouraria:index' %}"
@@ -119,6 +119,16 @@
                title="Seminário">
               <i class="bi bi-journal-text fs-5"></i>
               <span class="sidebar-link-text">Seminário</span>
+            </a>
+          </li>
+          {% endif %}
+          {% if perfil_usuario %}
+          <li class="nav-item">
+            <a class="nav-link {% if request.resolver_match and request.resolver_match.namespace == 'tesouraria' and request.resolver_match.url_name == 'minhas_entradas' %}active{% endif %}"
+               href="{% url 'tesouraria:minhas_entradas' %}"
+               title="Minhas Entradas">
+              <i class="bi bi-cash-stack fs-5"></i>
+              <span class="sidebar-link-text">Minhas Entradas</span>
             </a>
           </li>
           {% endif %}
@@ -256,7 +266,14 @@
             Visitantes
           </a>
           {% endif %}
-          {% if acesso_modulos.tesouraria.ver %}
+          {% if perfil_usuario %}
+          <a class="dropdown-item d-flex align-items-center gap-2 py-2"
+             href="{% url 'tesouraria:minhas_entradas' %}">
+            <i class="bi bi-cash-stack" aria-hidden="true"></i>
+            Minhas Entradas
+          </a>
+          {% endif %}
+          {% if acesso_modulos.tesouraria.ver and perfil_usuario.papel != 'comum' %}
           <a class="dropdown-item d-flex align-items-center gap-2 py-2"
              href="{% url 'tesouraria:index' %}">
             <i class="bi bi-cash-stack" aria-hidden="true"></i>

@@ -1,0 +1,23 @@
+{% load tesouraria_money %}
+
+<section id="minhas-entradas-chart-card"
+         class="card border-0 shadow-sm minhas-entradas-card"
+         {% if chart_oob %}hx-swap-oob="true"{% endif %}>
+  <div class="card-body">
+    <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-3">
+      <div>
+        <h3 class="h6 fw-bold text-dark mb-1">Últimos 12 meses</h3>
+        <p class="text-muted small mb-0">Linha do tempo das suas entradas.</p>
+      </div>
+      <div class="minhas-entradas-total minhas-entradas-total--sm">
+        <span>Total no período</span>
+        <strong>{{ chart.total_periodo|moeda_brl }}</strong>
+      </div>
+    </div>
+
+    {{ chart|json_script:"minhas-entradas-chart-data" }}
+    <div class="minhas-entradas-chart-wrap">
+      <canvas id="minhasEntradasChart" class="minhas-entradas-chart" height="120" aria-label="Gráfico de entradas dos últimos 12 meses"></canvas>
+    </div>
+  </div>
+</section>
