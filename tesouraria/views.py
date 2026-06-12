@@ -16,6 +16,7 @@ from django.http import HttpResponse, HttpResponseBadRequest, QueryDict
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse
 from django.utils.translation import gettext as _
+from django.views.decorators.cache import never_cache
 from django.views.decorators.http import require_http_methods
 
 from membros.models import Membro
@@ -315,7 +316,7 @@ def _month_bounds(year: int, month: int) -> tuple[date, date]:
 
 
 def _minhas_entradas_chart_payload(qs_base, hoje: date) -> dict:
-    months = [_month_add(hoje.year, hoje.month, i) for i in range(-11, 1)]
+    months = [_month_add(hoje.year, hoje.month, i) for i in range(-12, 0)]
     valores: dict[tuple[int, int], Decimal] = {}
     for year, month in months:
         inicio, fim = _month_bounds(year, month)
@@ -338,12 +339,13 @@ def _minhas_entradas_chart_payload(qs_base, hoje: date) -> dict:
 
 
 def _minhas_entradas_table_context(request, qs_base, hoje: date) -> dict:
-    selected_year = hoje.year
+    default_year, default_month = _month_add(hoje.year, hoje.month, -1)
+    selected_year = default_year
     raw_year = (request.GET.get('ano') or '').strip()
     if raw_year.isdigit():
         selected_year = int(raw_year)
 
-    selected_month = hoje.month
+    selected_month = default_month
     raw_month = (request.GET.get('mes') or '').strip()
     if 'mes' in request.GET and raw_month == '':
         selected_month = None
@@ -498,6 +500,7 @@ def competencias_lista_partial(request):
 
 
 @requer_modulo('tesouraria', edicao=False)
+@never_cache
 @require_http_methods(['GET'])
 def competencia_detalhe(request, pk):
     competencia = get_object_or_404(CompetenciaTesouraria, pk=pk)
@@ -1180,6 +1183,7 @@ def _render_lancamento_modal_from_stash(request, *, nova_categoria_pk=None):
 
 
 @requer_modulo('tesouraria', edicao=False)
+@never_cache
 @require_http_methods(['GET'])
 def conta_detalhe(request, competencia_pk, conta_pk):
     competencia, conta = _get_competencia_e_conta(competencia_pk, conta_pk)
@@ -1196,6 +1200,7 @@ def conta_detalhe(request, competencia_pk, conta_pk):
 
 
 @requer_modulo('tesouraria', edicao=False)
+@never_cache
 @require_http_methods(['GET'])
 def lancamentos_lista_partial(request, competencia_pk, conta_pk):
     competencia, conta = _get_competencia_e_conta(competencia_pk, conta_pk)

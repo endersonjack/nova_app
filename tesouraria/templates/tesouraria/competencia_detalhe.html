@@ -132,8 +132,7 @@
           <th scope="col" class="ps-4">{% trans "Nome" %}</th>
           <th scope="col">{% trans "Tipo" %}</th>
           <th scope="col">{% trans "Descrição" %}</th>
-          <th scope="col" class="text-end">{% trans "Saldo" %}</th>
-          <th scope="col" class="pe-4">{% trans "Ativa" %}</th>
+          <th scope="col" class="text-end pe-4">{% trans "Saldo" %}</th>
         </tr>
       </thead>
       <tbody>
@@ -151,7 +150,7 @@
             {% endif %}
           </td>
           <td class="text-secondary small">{{ conta.descricao|default:"—"|truncatechars:80 }}</td>
-          <td class="text-end fw-semibold text-nowrap">
+          <td class="text-end fw-semibold text-nowrap pe-4">
             {% with s=saldo_por_conta|saldo_na_conta:conta %}
             {% if s < 0 %}
             <span class="text-danger">{{ s|moeda_brl }}</span>
@@ -160,17 +159,10 @@
             {% endif %}
             {% endwith %}
           </td>
-          <td class="pe-4">
-            {% if conta.ativa %}
-            <span class="text-success small">{% trans "Sim" %}</span>
-            {% else %}
-            <span class="text-muted small">{% trans "Não" %}</span>
-            {% endif %}
-          </td>
         </tr>
         {% empty %}
         <tr>
-          <td colspan="5" class="text-center text-muted py-5">
+          <td colspan="4" class="text-center text-muted py-5">
             {% trans "Nenhuma conta ou caixa cadastrada." %}
             {% if pode_editar %}
             <span class="d-block small mt-1">{% trans "Use «Novo caixa» ou «Nova conta» para adicionar." %}</span>
@@ -180,6 +172,18 @@
         {% endfor %}
       </tbody>
     </table>
+  </div>
+  <div class="card-body py-3 px-4 border-top border-primary border-opacity-25 bg-primary bg-opacity-10 tesouraria-saldo-destaque">
+    <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-1">
+      <span class="fw-bold text-dark">{% trans "Saldo do mês" %}</span>
+      <span class="fs-6 fw-bold text-nowrap">
+        {% if competencia_saldo_geral < 0 %}
+        <span class="text-danger">{{ competencia_saldo_geral|moeda_brl }}</span>
+        {% else %}
+        <span class="text-dark">{{ competencia_saldo_geral|moeda_brl }}</span>
+        {% endif %}
+      </span>
+    </div>
   </div>
 </div>
 </section>
@@ -282,7 +286,7 @@
           </td>
         </tr>
         {% endif %}
-        <tr>
+        <tr class="tesouraria-saldo-destaque">
           <th scope="row" class="ps-4 fw-bold" colspan="2">{% trans "Saldo geral (fechamento)" %}</th>
           <td class="text-end fw-bold text-success text-nowrap">{{ competencia_total_entradas|moeda_brl }}</td>
           <td class="text-end fw-bold text-danger text-nowrap">{{ competencia_total_saidas|moeda_brl }}</td>

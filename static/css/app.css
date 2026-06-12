@@ -447,6 +447,16 @@ nav.app-sidebar {
   transform: rotate(180deg);
 }
 
+.tesouraria-saldo-destaque {
+  background-color: rgba(13, 110, 253, 0.1) !important;
+  box-shadow: inset 0 1px 0 rgba(13, 110, 253, 0.14);
+}
+
+.table > :not(caption) > * > .tesouraria-saldo-destaque,
+.table > :not(caption) > .tesouraria-saldo-destaque > * {
+  background-color: rgba(13, 110, 253, 0.1) !important;
+}
+
 /* Perigo (exclusão) */
 .btn-app-danger {
   background-color: #dc2626 !important;
