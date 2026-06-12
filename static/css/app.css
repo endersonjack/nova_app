@@ -380,6 +380,39 @@ nav.app-sidebar {
   box-shadow: var(--app-btn-shadow-secondary-hover);
 }
 
+.input-group > .tesouraria-categoria-add-btn {
+  width: 2.35rem;
+  min-width: 2.35rem;
+  padding: 0 !important;
+  border-radius: 0 0.375rem 0.375rem 0 !important;
+  border-color: #86a3cf !important;
+  border-left: 0 !important;
+  box-shadow: none !important;
+}
+
+.input-group > .form-select + .tesouraria-categoria-add-btn {
+  margin-left: calc(-1 * var(--bs-border-width));
+}
+
+.tesouraria-participante-field {
+  position: relative;
+}
+
+.tesouraria-participante-results {
+  position: absolute;
+  top: calc(100% + 0.15rem);
+  left: calc(var(--bs-gutter-x) * 0.5);
+  right: calc(var(--bs-gutter-x) * 0.5);
+  z-index: 1085;
+  max-height: min(15rem, 42vh);
+  overflow-y: auto;
+  display: none;
+}
+
+.tesouraria-participante-results:not(:empty) {
+  display: block;
+}
+
 /* Perigo (exclusão) */
 .btn-app-danger {
   background-color: #dc2626 !important;

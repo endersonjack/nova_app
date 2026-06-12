@@ -21,6 +21,43 @@
     }
   });
 
+  function modalSubmitButton(form) {
+    if (!form) return null;
+    return form.querySelector('button[type="submit"]');
+  }
+
+  function setModalSubmitLoading(form) {
+    var btn = modalSubmitButton(form);
+    if (!btn || btn.dataset.appLoading === '1') return;
+    btn.dataset.appLoading = '1';
+    btn.dataset.appOriginalHtml = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML =
+      '<span class="spinner-border spinner-border-sm" aria-hidden="true"></span>' +
+      '<span>Salvando...</span>';
+  }
+
+  function clearModalSubmitLoading(form) {
+    var btn = modalSubmitButton(form);
+    if (!btn || btn.dataset.appLoading !== '1') return;
+    btn.innerHTML = btn.dataset.appOriginalHtml || 'Salvar';
+    btn.disabled = false;
+    delete btn.dataset.appLoading;
+    delete btn.dataset.appOriginalHtml;
+  }
+
+  document.body.addEventListener('htmx:beforeRequest', function (evt) {
+    var elt = evt.detail && evt.detail.elt;
+    if (!elt || !elt.matches || !elt.matches('#appModal form')) return;
+    setModalSubmitLoading(elt);
+  });
+
+  document.body.addEventListener('htmx:afterRequest', function (evt) {
+    var elt = evt.detail && evt.detail.elt;
+    if (!elt || !elt.matches || !elt.matches('#appModal form')) return;
+    clearModalSubmitLoading(elt);
+  });
+
   function appModalApplySize(modalContent) {
     var dlg = document.getElementById('app-modal-dialog');
     if (!dlg || !modalContent) return;

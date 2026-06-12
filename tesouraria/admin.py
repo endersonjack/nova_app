@@ -60,14 +60,25 @@ class LancamentoFinanceiroAdmin(admin.ModelAdmin):
         'competencia',
         'conta',
         'categoria',
-        'membro',
+        'participante',
     )
     list_filter = ('tipo', 'data', 'competencia', 'conta', 'categoria')
     search_fields = ('descricao', 'numero_documento', 'observacao')
-    autocomplete_fields = ('competencia', 'conta', 'categoria', 'membro', 'evento')
+    autocomplete_fields = (
+        'competencia',
+        'conta',
+        'categoria',
+        'membro',
+        'visitante',
+        'evento',
+    )
     ordering = ('-data', '-id')
     date_hierarchy = 'data'
 
     @admin.display(description=_('Valor'), ordering='valor')
     def valor_formatado(self, obj):
         return f'R$ {format_brl(obj.valor)}'
+
+    @admin.display(description=_('Membro/Visitante'))
+    def participante(self, obj):
+        return obj.participante_nome or '—'

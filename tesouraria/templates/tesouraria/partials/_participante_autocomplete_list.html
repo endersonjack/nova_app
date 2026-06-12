@@ -1,0 +1,34 @@
+{% if q|length < 2 %}
+<p class="text-muted small mb-0 px-3 py-2">Digite pelo menos 2 letras para buscar.</p>
+{% elif membros or visitantes %}
+<div class="list-group list-group-flush py-1">
+  {% for m in membros %}
+  <button type="button"
+          class="list-group-item list-group-item-action border-0 py-2 px-3 text-start js-autocomplete-pick"
+          data-participante-tipo="membro"
+          data-participante-id="{{ m.pk }}"
+          data-participante-label="{{ m.nome_completo }}{% if m.cpf_formatado %} — CPF: {{ m.cpf_formatado }}{% endif %}">
+    <span class="d-flex align-items-center justify-content-between gap-2">
+      <span class="fw-semibold text-dark">{{ m.nome_completo }}</span>
+      <span class="badge rounded-pill text-bg-primary bg-opacity-10 text-primary">Membro</span>
+    </span>
+    <span class="text-muted small d-block">{% if m.cpf_formatado %}CPF: {{ m.cpf_formatado }}{% else %}{{ m.nome_conhecido|default:"" }}{% endif %}</span>
+  </button>
+  {% endfor %}
+  {% for v in visitantes %}
+  <button type="button"
+          class="list-group-item list-group-item-action border-0 py-2 px-3 text-start js-autocomplete-pick"
+          data-participante-tipo="visitante"
+          data-participante-id="{{ v.pk }}"
+          data-participante-label="{{ v.nome_completo }}{% if v.telefone_formatado %} — {{ v.telefone_formatado }}{% endif %}">
+    <span class="d-flex align-items-center justify-content-between gap-2">
+      <span class="fw-semibold text-dark">{{ v.nome_completo }}</span>
+      <span class="badge rounded-pill text-bg-success bg-opacity-10 text-success">Visitante</span>
+    </span>
+    <span class="text-muted small d-block">{{ v.telefone_formatado|default:v.nome_conhecido }}</span>
+  </button>
+  {% endfor %}
+</div>
+{% else %}
+<p class="text-muted small mb-0 px-3 py-2">Nenhum membro ou visitante encontrado.</p>
+{% endif %}

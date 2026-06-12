@@ -140,6 +140,14 @@ class LancamentoFinanceiro(models.Model):
         related_name='lancamentos_financeiros',
         verbose_name=_('Membro'),
     )
+    visitante = models.ForeignKey(
+        'visitantes.Visitante',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='lancamentos_financeiros',
+        verbose_name=_('Visitante'),
+    )
     tipo = models.CharField(
         _('Tipo'),
         max_length=10,
@@ -182,3 +190,11 @@ class LancamentoFinanceiro(models.Model):
     def __str__(self) -> str:
         label = self.descricao.strip() if self.descricao else str(self.pk)
         return f'{self.get_tipo_display()} — {label} — R$ {format_brl(self.valor)}'
+
+    @property
+    def participante_nome(self) -> str:
+        if self.membro_id:
+            return self.membro.nome_completo
+        if self.visitante_id:
+            return self.visitante.nome_completo
+        return ''

@@ -241,6 +241,7 @@ class LancamentoEntradaForm(_LancamentoFinanceiroBaseForm):
         model = LancamentoFinanceiro
         fields = (
             'membro',
+            'visitante',
             'categoria',
             'data',
             'valor',
@@ -251,6 +252,7 @@ class LancamentoEntradaForm(_LancamentoFinanceiroBaseForm):
         )
         widgets = {
             'membro': forms.HiddenInput(),
+            'visitante': forms.HiddenInput(),
             'categoria': forms.Select(attrs={'class': 'form-select'}),
             'data': forms.DateInput(
                 attrs={'class': 'form-control', 'type': 'date'},
@@ -262,20 +264,21 @@ class LancamentoEntradaForm(_LancamentoFinanceiroBaseForm):
             'descricao': forms.TextInput(
                 attrs={'class': 'form-control', 'maxlength': 255}
             ),
-            'observacao': forms.Textarea(
-                attrs={'class': 'form-control', 'rows': 2}
+            'observacao': forms.TextInput(
+                attrs={'class': 'form-control', 'maxlength': 255}
             ),
             'evento': forms.Select(attrs={'class': 'form-select'}),
         }
         labels = {
             'categoria': _('Categoria de entrada'),
             'membro': _('Membro'),
+            'visitante': _('Visitante'),
             'data': _('Data'),
             'valor': _('Valor (R$)'),
             'numero_documento': _('Nº do documento'),
             'descricao': _('Descrição'),
             'observacao': _('Obs.'),
-            'evento': _('Eventos'),
+            'evento': _('Evento'),
         }
 
     def __init__(self, *args, competencia=None, **kwargs):
@@ -285,6 +288,35 @@ class LancamentoEntradaForm(_LancamentoFinanceiroBaseForm):
             tipo=TipoCategoriaFinanceira.ENTRADA,
         ).order_by('nome')
         self.fields['membro'].required = False
+        self.fields['visitante'].required = False
+        if not self.is_bound and not (self.instance and self.instance.categoria_id):
+            dizimo = (
+                self.fields['categoria']
+                .queryset.filter(nome__iexact='Dízimo')
+                .first()
+            )
+            if not dizimo:
+                dizimo = (
+                    self.fields['categoria']
+                    .queryset.filter(nome__icontains='Dízimo')
+                    .first()
+                )
+            if not dizimo:
+                dizimo = (
+                    self.fields['categoria']
+                    .queryset.filter(nome__icontains='Dizimo')
+                    .first()
+                )
+            if dizimo:
+                self.initial['categoria'] = dizimo.pk
+
+    def clean(self):
+        cleaned = super().clean()
+        if cleaned.get('membro') and cleaned.get('visitante'):
+            raise forms.ValidationError(
+                _('Selecione apenas um membro ou visitante para a entrada.')
+            )
+        return cleaned
 
 
 class LancamentoSaidaForm(_LancamentoFinanceiroBaseForm):

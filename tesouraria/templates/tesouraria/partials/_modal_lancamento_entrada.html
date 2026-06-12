@@ -37,7 +37,7 @@
         <div class="input-group">
           {{ form.categoria }}
           <button type="button"
-                  class="btn btn-app btn-app-secondary btn-sm"
+                  class="btn btn-app btn-app-secondary btn-sm tesouraria-categoria-add-btn"
                   title="{% trans 'Nova categoria' %}"
                   aria-label="{% trans 'Nova categoria' %}"
                   hx-post="{% url 'tesouraria:lancamento_preservar_rascunho_abrir_categoria' competencia.pk conta.pk %}"
@@ -52,6 +52,28 @@
         </div>
         {% for err in form.categoria.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
       </div>
+      <div class="col-12 col-md-8 tesouraria-participante-field">
+        <label class="form-label app-modal-form__label mb-1" for="lancamento-membro-q">{% trans "Membro ou Visitante" %}</label>
+        <div class="d-flex align-items-center gap-2">
+          <div class="input-group input-group-sm flex-grow-1">
+            <input type="text"
+                   id="lancamento-membro-q"
+                   class="form-control"
+                   autocomplete="off"
+                   placeholder="{% trans 'Buscar membro ou visitante (mín. 2 caracteres)…' %}"
+                   value="{{ membro_busca_inicial|default:'' }}"
+                   data-tesouraria-membro-autocomplete-url="{% url 'tesouraria:membro_autocomplete_lancamento' %}">
+            <button type="button" class="btn btn-outline-secondary" id="lancamento-membro-clear" title="{% trans 'Limpar participante' %}" aria-label="{% trans 'Limpar participante' %}">
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+          </div>
+        </div>
+        <div id="lancamento-membro-results" class="border rounded-3 shadow-sm bg-white w-100 autocomplete-dropdown tesouraria-participante-results"></div>
+        {{ form.membro }}
+        {{ form.visitante }}
+        {% for err in form.membro.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+        {% for err in form.visitante.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
       <div class="col-12 col-md-4">
         <label class="form-label app-modal-form__label mb-1" for="{{ form.valor.id_for_label }}">{{ form.valor.label }}<span class="text-danger" aria-hidden="true"> *</span></label>
         <div class="input-group">
@@ -60,47 +82,24 @@
         </div>
         {% for err in form.valor.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
       </div>
-      <div class="col-12 col-md-3">
-        <label class="form-label app-modal-form__label mb-1" for="{{ form.numero_documento.id_for_label }}">{{ form.numero_documento.label }}</label>
-        {{ form.numero_documento }}
-        {% for err in form.numero_documento.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
-      </div>
-      <div class="col-12 col-md-5">
-        <label class="form-label app-modal-form__label mb-1" for="lancamento-membro-q">{% trans "Membro" %}</label>
-        <div class="d-flex align-items-center gap-2">
-          <div class="input-group input-group-sm flex-grow-1">
-            <input type="text"
-                   id="lancamento-membro-q"
-                   class="form-control"
-                   autocomplete="off"
-                   placeholder="{% trans 'Buscar por nome ou e-mail (mín. 2 caracteres)…' %}"
-                   value="{{ membro_busca_inicial|default:'' }}"
-                   data-tesouraria-membro-autocomplete-url="{% url 'tesouraria:membro_autocomplete_lancamento' %}">
-            <button type="button" class="btn btn-outline-secondary" id="lancamento-membro-clear" title="{% trans 'Limpar membro' %}" aria-label="{% trans 'Limpar membro' %}">
-              <i class="bi bi-x-lg" aria-hidden="true"></i>
-            </button>
-          </div>
-        </div>
-        <div id="lancamento-membro-results" class="border rounded-3 shadow-sm bg-white mt-1 w-100 autocomplete-dropdown"></div>
-        {{ form.membro }}
-        {% for err in form.membro.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
-      </div>
-      <div class="col-12">
+      <div class="col-12 col-md-6">
         <label class="form-label app-modal-form__label mb-1" for="{{ form.descricao.id_for_label }}">{{ form.descricao.label }}</label>
         {{ form.descricao }}
         {% for err in form.descricao.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
+      </div>
+      <div class="col-12 col-md-6">
+        <label class="form-label app-modal-form__label mb-1" for="{{ form.evento.id_for_label }}">{{ form.evento.label }}</label>
+        {{ form.evento }}
+        {% for err in form.evento.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
       </div>
       <div class="col-12">
         <label class="form-label app-modal-form__label mb-1" for="{{ form.observacao.id_for_label }}">{{ form.observacao.label }}</label>
         {{ form.observacao }}
         {% for err in form.observacao.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
       </div>
-      <div class="col-12">
-        <label class="form-label app-modal-form__label mb-1" for="{{ form.evento.id_for_label }}">{{ form.evento.label }}</label>
-        {{ form.evento }}
-        {% for err in form.evento.errors %}<div class="text-danger small">{{ err }}</div>{% endfor %}
-      </div>
     </div>
+    {{ form.numero_documento.as_hidden }}
+    {% for err in form.numero_documento.errors %}<div class="text-danger small mt-2">{{ err }}</div>{% endfor %}
     <div class="modal-footer border-top mt-3 px-0 pb-0 pt-3 flex-wrap gap-2">
       <span id="app-modal-indicator" class="htmx-indicator spinner-border spinner-border-sm text-primary me-auto" role="status" aria-hidden="true"></span>
       <button type="button" class="btn btn-app btn-app-secondary btn-sm" data-bs-dismiss="modal">{% trans "Cancelar" %}</button>

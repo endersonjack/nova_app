@@ -6,6 +6,10 @@
     return document.querySelector('#form-lancamento-entrada #id_membro');
   }
 
+  function visitanteHidden() {
+    return document.querySelector('#form-lancamento-entrada #id_visitante');
+  }
+
   function membroSearch() {
     return document.getElementById('lancamento-membro-q');
   }
@@ -20,9 +24,11 @@
 
   function clearMembro() {
     var h = membroHidden();
+    var v = visitanteHidden();
     var q = membroSearch();
     var r = membroResults();
     if (h) h.value = '';
+    if (v) v.value = '';
     if (q) q.value = '';
     if (r) r.innerHTML = '';
   }
@@ -71,7 +77,7 @@
         .catch(function (err) {
           if (err.name === 'AbortError') return;
           results.innerHTML =
-            '<p class="text-danger small mb-0 px-3 py-2">Erro ao buscar membros.</p>';
+            '<p class="text-danger small mb-0 px-3 py-2">Erro ao buscar membro ou visitante.</p>';
         })
         .finally(function () {
           state.abort = null;
@@ -84,6 +90,10 @@
     if (!t || t.id !== 'lancamento-membro-q') return;
     var modal = document.getElementById('appModal');
     if (!modal || !modal.contains(t)) return;
+    var h = membroHidden();
+    var v = visitanteHidden();
+    if (h) h.value = '';
+    if (v) v.value = '';
     runAutocomplete(t);
   });
 
@@ -101,12 +111,19 @@
     var pick = e.target.closest('.js-autocomplete-pick');
     if (!pick || !modal.contains(pick)) return;
     e.preventDefault();
-    var id = pick.getAttribute('data-membro-id');
-    var label = (pick.getAttribute('data-membro-label') || '').trim();
+    var tipo = pick.getAttribute('data-participante-tipo') || 'membro';
+    var id = pick.getAttribute('data-participante-id') || pick.getAttribute('data-membro-id');
+    var label = (
+      pick.getAttribute('data-participante-label') ||
+      pick.getAttribute('data-membro-label') ||
+      ''
+    ).trim();
     var h = membroHidden();
+    var v = visitanteHidden();
     var q = membroSearch();
     var r = membroResults();
-    if (h) h.value = id || '';
+    if (h) h.value = tipo === 'membro' ? id || '' : '';
+    if (v) v.value = tipo === 'visitante' ? id || '' : '';
     if (q) {
       var shortLabel = label.split(' —')[0].trim();
       q.value = shortLabel || label;

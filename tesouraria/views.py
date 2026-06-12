@@ -14,6 +14,7 @@ from django.utils.translation import gettext as _
 from django.views.decorators.http import require_http_methods
 
 from membros.models import Membro
+from visitantes.models import Visitante
 
 from usuarios.familia import membros_visiveis_queryset
 from usuarios.models import PapelMembro
@@ -390,7 +391,7 @@ def competencia_relatorio_pdf(request, pk):
     lancamentos_por_conta: dict[int, list] = defaultdict(list)
     for lan in (
         LancamentoFinanceiro.objects.filter(competencia=competencia)
-        .select_related('categoria', 'membro', 'evento')
+        .select_related('categoria', 'membro', 'visitante', 'evento')
         .order_by('data', 'id')
     ):
         lancamentos_por_conta[lan.conta_id].append(lan)
@@ -821,7 +822,9 @@ def _lancamento_na_conta(competencia_pk, conta_pk, pk):
         LancamentoFinanceiro.objects.select_related(
             'categoria',
             'membro',
-        ).select_related('evento'),
+            'visitante',
+            'evento',
+        ),
         pk=pk,
         competencia_id=competencia_pk,
         conta_id=conta_pk,
@@ -854,17 +857,26 @@ def _stash_post_as_querydict(stash_post: dict) -> QueryDict:
     return q
 
 
-def _membro_label_de_data(data: dict, lan=None):
+def _participante_label_de_data(data: dict, lan=None):
+    raw_visitante = data.get('visitante', '')
+    if raw_visitante is not None and str(raw_visitante).strip():
+        vid = str(raw_visitante).strip()
+        if vid.isdigit():
+            v = Visitante.todos.filter(pk=int(vid)).first()
+            if v:
+                return v.nome_completo
     raw = data.get('membro', '')
-    if raw is not None and str(raw).strip() == '':
-        return ''
-    mid = str(raw).strip()
-    if mid.isdigit():
-        m = Membro.objects.filter(pk=int(mid)).first()
-        if m:
-            return m.nome_completo
-    if lan and lan.membro_id:
-        return lan.membro.nome_completo
+    if raw is not None and str(raw).strip():
+        mid = str(raw).strip()
+        if mid.isdigit():
+            m = Membro.objects.filter(pk=int(mid)).first()
+            if m:
+                return m.nome_completo
+    if lan:
+        if lan.membro_id:
+            return lan.membro.nome_completo
+        if lan.visitante_id:
+            return lan.visitante.nome_completo
     return ''
 
 
@@ -891,7 +903,7 @@ def _render_lancamento_modal_from_stash(request, *, nova_categoria_pk=None):
                 'tesouraria:lancamento_salvar',
                 args=[competencia_pk, conta_pk, pk_edit],
             )
-            membro_busca_inicial = _membro_label_de_data(data, lan)
+            membro_busca_inicial = _participante_label_de_data(data, lan)
         else:
             form = LancamentoEntradaForm(data, competencia=competencia)
             titulo = _('Nova entrada')
@@ -899,7 +911,7 @@ def _render_lancamento_modal_from_stash(request, *, nova_categoria_pk=None):
                 'tesouraria:lancamento_criar_entrada',
                 args=[competencia_pk, conta_pk],
             )
-            membro_busca_inicial = _membro_label_de_data(data, None)
+            membro_busca_inicial = _participante_label_de_data(data, None)
         return render(
             request,
             'tesouraria/partials/_modal_lancamento_entrada.html',
@@ -966,7 +978,7 @@ def lancamentos_lista_partial(request, competencia_pk, conta_pk):
     base = LancamentoFinanceiro.objects.filter(
         competencia_id=competencia.pk,
         conta_id=conta.pk,
-    ).select_related('categoria', 'membro', 'evento')
+    ).select_related('categoria', 'membro', 'visitante', 'evento')
     lancamentos_entrada = base.filter(
         tipo=TipoCategoriaFinanceira.ENTRADA,
     ).order_by('data', 'id')
@@ -991,22 +1003,32 @@ def lancamentos_lista_partial(request, competencia_pk, conta_pk):
 @require_http_methods(['GET'])
 def membro_autocomplete_lancamento(request):
     q = request.GET.get('tesouraria_membro_q', '').strip()
-    base = membros_visiveis_queryset(request.user).filter(ativo=True)
     if len(q) < 2:
         membros = Membro.objects.none()
+        visitantes = Visitante.objects.none()
     else:
+        base = membros_visiveis_queryset(request.user).filter(ativo=True)
         membros = (
             base.filter(
                 Q(nome_completo__icontains=q)
                 | Q(nome_conhecido__icontains=q)
-                | Q(email__icontains=q)
+                | Q(cpf__icontains=q)
             )
-            .order_by('nome_completo')[:20]
+            .order_by('nome_completo')[:10]
+        )
+        visitantes = (
+            Visitante.objects.filter(ativo=True)
+            .filter(
+                Q(nome_completo__icontains=q)
+                | Q(nome_conhecido__icontains=q)
+                | Q(telefone__icontains=q)
+            )
+            .order_by('nome_completo')[:10]
         )
     return render(
         request,
-        'membros/partials/_autocomplete_list.html',
-        {'membros': membros, 'q': q},
+        'tesouraria/partials/_participante_autocomplete_list.html',
+        {'membros': membros, 'visitantes': visitantes, 'q': q},
     )
 
 
@@ -1114,7 +1136,10 @@ def lancamento_criar_entrada(request, competencia_pk, conta_pk):
             ),
             'competencia': competencia,
             'conta': conta,
-            'membro_busca_inicial': _membro_label_de_data(request.POST.dict(), None),
+            'membro_busca_inicial': _participante_label_de_data(
+                request.POST.dict(),
+                None,
+            ),
             'lancamento_pk': lancamento_pk_ctx,
         },
         status=422,
@@ -1157,6 +1182,7 @@ def lancamento_criar_saida(request, competencia_pk, conta_pk):
         lan.conta = conta
         lan.tipo = TipoCategoriaFinanceira.SAIDA
         lan.membro = None
+        lan.visitante = None
         lan.save()
         return _hx_close_modal_e_atualizar_lancamentos()
     return render(
@@ -1191,6 +1217,8 @@ def lancamento_modal_editar(request, competencia_pk, conta_pk, pk):
         form = LancamentoEntradaForm(instance=lan, competencia=competencia)
         if lan.membro_id:
             membro_busca_inicial = lan.membro.nome_completo
+        elif lan.visitante_id:
+            membro_busca_inicial = lan.visitante.nome_completo
         return render(
             request,
             'tesouraria/partials/_modal_lancamento_entrada.html',
@@ -1260,13 +1288,14 @@ def lancamento_salvar(request, competencia_pk, conta_pk, pk):
         obj.tipo = lan.tipo
         if lan.tipo == TipoCategoriaFinanceira.SAIDA:
             obj.membro = None
+            obj.visitante = None
         obj.save()
         return _hx_close_modal_e_atualizar_lancamentos()
     return render(request, template, ctx, status=422)
 
 
 def _membro_label_para_busca(post, lan):
-    return _membro_label_de_data(post.dict(), lan)
+    return _participante_label_de_data(post.dict(), lan)
 
 
 @requer_modulo('tesouraria', edicao=True)

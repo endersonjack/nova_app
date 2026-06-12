@@ -13,7 +13,7 @@
           <th scope="col">{% trans "Categoria" %}</th>
           <th scope="col">{% trans "Eventos" %}</th>
           <th scope="col" class="text-end">{% trans "Valor (R$)" %}</th>
-          <th scope="col">{% trans "Membro" %}</th>
+          <th scope="col">{% trans "Membro/Visitante" %}</th>
           <th scope="col">{% trans "Documento" %}</th>
           {% if pode_editar %}
           <th scope="col" class="pe-4 text-end" style="width: 4.5rem;">{% trans "Ações" %}</th>
@@ -43,7 +43,7 @@
             {% else %}—{% endif %}
           </td>
           <td class="text-end fw-semibold text-dark text-nowrap">{{ lan.valor|moeda_brl }}</td>
-          <td class="text-secondary small">{{ lan.membro.nome_completo|default:"—" }}</td>
+          <td class="text-secondary small">{{ lan.participante_nome|default:"—" }}</td>
           <td class="text-secondary small">{{ lan.numero_documento|default:"—" }}</td>
           <td class="pe-4 text-end text-nowrap" {% if pode_editar %}onclick="event.stopPropagation();"{% endif %}>
             {% if pode_editar %}
