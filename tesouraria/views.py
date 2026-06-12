@@ -1203,12 +1203,24 @@ def lancamentos_lista_partial(request, competencia_pk, conta_pk):
         competencia_id=competencia.pk,
         conta_id=conta.pk,
     ).select_related('categoria', 'membro', 'visitante', 'evento')
-    lancamentos_entrada = base.filter(
-        tipo=TipoCategoriaFinanceira.ENTRADA,
-    ).order_by('data', 'id')
-    lancamentos_saida = base.filter(
-        tipo=TipoCategoriaFinanceira.SAIDA,
-    ).order_by('data', 'id')
+    lancamentos_entrada = list(
+        base.filter(
+            tipo=TipoCategoriaFinanceira.ENTRADA,
+        ).order_by('data', 'id')
+    )
+    lancamentos_saida = list(
+        base.filter(
+            tipo=TipoCategoriaFinanceira.SAIDA,
+        ).order_by('data', 'id')
+    )
+    total_entrada_valor = sum(
+        (lan.valor for lan in lancamentos_entrada),
+        Decimal('0'),
+    )
+    total_saida_valor = sum(
+        (lan.valor for lan in lancamentos_saida),
+        Decimal('0'),
+    )
     pode_editar = usuario_pode_modulo(request.user, 'tesouraria', edicao=True)
     return render(
         request,
@@ -1218,6 +1230,10 @@ def lancamentos_lista_partial(request, competencia_pk, conta_pk):
             'conta': conta,
             'lancamentos_entrada': lancamentos_entrada,
             'lancamentos_saida': lancamentos_saida,
+            'total_entrada_quantidade': len(lancamentos_entrada),
+            'total_entrada_valor': total_entrada_valor,
+            'total_saida_quantidade': len(lancamentos_saida),
+            'total_saida_valor': total_saida_valor,
             'pode_editar': pode_editar,
         },
     )

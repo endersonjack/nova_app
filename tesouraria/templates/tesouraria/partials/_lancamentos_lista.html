@@ -79,6 +79,18 @@
         </tr>
         {% endfor %}
       </tbody>
+      <tfoot class="table-light">
+        <tr>
+          <td colspan="4" class="ps-4 fw-semibold text-dark">
+            {% trans "Quantidade" %}: {{ total_entrada_quantidade }}
+          </td>
+          <td class="text-end text-nowrap">
+            <span class="d-block text-muted small fw-semibold">{% trans "Valor Total" %}</span>
+            <span class="fw-bold text-dark">{{ total_entrada_valor|moeda_brl }}</span>
+          </td>
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
     </table>
   </div>
 </div>
@@ -156,6 +168,18 @@
         </tr>
         {% endfor %}
       </tbody>
+      <tfoot class="table-light">
+        <tr>
+          <td colspan="3" class="ps-4 fw-semibold text-dark">
+            {% trans "Quantidade" %}: {{ total_saida_quantidade }}
+          </td>
+          <td class="text-end text-nowrap">
+            <span class="d-block text-muted small fw-semibold">{% trans "Valor Total" %}</span>
+            <span class="fw-bold text-dark">{{ total_saida_valor|moeda_brl }}</span>
+          </td>
+          <td colspan="2"></td>
+        </tr>
+      </tfoot>
     </table>
   </div>
 </div>
