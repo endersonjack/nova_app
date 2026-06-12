@@ -3,6 +3,10 @@
   display: none;
 }
 
+.pwa-install-prompt {
+  display: none;
+}
+
 @media (max-width: 991.98px) {
   html,
   body {
@@ -201,6 +205,66 @@
     right: 0 !important;
     bottom: 0 !important;
     left: 0 !important;
+  }
+
+  .pwa-install-prompt {
+    position: fixed;
+    right: 0.85rem;
+    bottom: calc(5.95rem + env(safe-area-inset-bottom, 0px));
+    left: 0.85rem;
+    z-index: 2100;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.75rem;
+    border: 1px solid rgba(148, 163, 184, 0.28);
+    border-radius: 0.95rem;
+    background: #ffffff;
+    box-shadow: 0 18px 38px rgba(15, 23, 42, 0.22);
+  }
+
+  .pwa-install-prompt[hidden] {
+    display: none !important;
+  }
+
+  .pwa-install-prompt__icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    flex: 0 0 auto;
+    overflow: hidden;
+    border-radius: 0.75rem;
+    background: #12173a;
+  }
+
+  .pwa-install-prompt__icon img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .pwa-install-prompt__body {
+    display: grid;
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 0.05rem;
+  }
+
+  .pwa-install-prompt__body strong {
+    color: #111827;
+    font-size: 0.9rem;
+    line-height: 1.1;
+  }
+
+  .pwa-install-prompt__body span {
+    color: #64748b;
+    font-size: 0.75rem;
+    line-height: 1.2;
+  }
+
+  .pwa-install-prompt__close {
+    flex: 0 0 auto;
+    color: #64748b;
+    text-decoration: none;
   }
 
   .row {

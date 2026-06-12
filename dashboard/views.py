@@ -4,6 +4,7 @@ from datetime import date
 from django.contrib.auth.decorators import login_required
 from django.db.models import Count
 from django.db.models.functions import ExtractDay
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import render
 
 from membros.models import Membro, Sexo
@@ -68,6 +69,59 @@ IDADE_CORES = (
     '#6366f1',
     '#94a3b8',
 )
+
+
+def pwa_manifest(_request):
+    return JsonResponse(
+        {
+            'name': 'NOVA App',
+            'short_name': 'NOVA',
+            'description': 'Aplicativo da igreja NOVA.',
+            'start_url': '/',
+            'scope': '/',
+            'display': 'standalone',
+            'orientation': 'portrait',
+            'background_color': '#f1f5f9',
+            'theme_color': '#12173a',
+            'icons': [
+                {
+                    'src': '/static/img/pwa/icon-192.png',
+                    'sizes': '192x192',
+                    'type': 'image/png',
+                    'purpose': 'any maskable',
+                },
+                {
+                    'src': '/static/img/pwa/icon-512.png',
+                    'sizes': '512x512',
+                    'type': 'image/png',
+                    'purpose': 'any maskable',
+                },
+            ],
+        },
+        content_type='application/manifest+json',
+    )
+
+
+def pwa_service_worker(_request):
+    content = """
+const NOVA_SW_VERSION = 'nova-pwa-v1';
+
+self.addEventListener('install', function (event) {
+  self.skipWaiting();
+});
+
+self.addEventListener('activate', function (event) {
+  event.waitUntil(self.clients.claim());
+});
+
+self.addEventListener('fetch', function (event) {
+  event.respondWith(fetch(event.request));
+});
+""".strip()
+    response = HttpResponse(content, content_type='application/javascript; charset=utf-8')
+    response['Service-Worker-Allowed'] = '/'
+    response['Cache-Control'] = 'no-cache'
+    return response
 
 
 def _idade_faixa_chave(data_nascimento) -> str:

@@ -23,6 +23,7 @@ from django.http import HttpResponse
 from django.urls import include, path, re_path
 from django.views.static import serve
 
+from dashboard import views as dashboard_views
 from usuarios.forms import LoginForm
 from usuarios import views as usuarios_views
 
@@ -33,6 +34,8 @@ def favicon_view(_request):
 
 urlpatterns = [
     path('favicon.ico', favicon_view),
+    path('manifest.webmanifest', dashboard_views.pwa_manifest, name='pwa_manifest'),
+    path('service-worker.js', dashboard_views.pwa_service_worker, name='pwa_service_worker'),
     path('admin/', admin.site.urls),
     path(
         'login/',
