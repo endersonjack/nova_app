@@ -1,0 +1,120 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Relatório de Membros e Visitantes{% endblock %}
+{% block page_title %}
+  <span class="mobile-gradient-title">
+    <span class="mobile-gradient-title__icon"><i class="bi bi-person-lines-fill" aria-hidden="true"></i></span>
+    <span>Relatório de Membros e Visitantes</span>
+  </span>
+{% endblock %}
+
+{% block extra_css %}
+  <link rel="stylesheet" href="{% static 'tesouraria/css/minhas_entradas.css' %}?v=5">
+{% endblock %}
+
+{% block content %}
+<div class="mobile-gradient-page minhas-entradas-page relatorio-participantes-page">
+  <form method="get"
+        id="relatorio-participante-form"
+        class="card border-0 shadow-sm relatorio-participante-search"
+        autocomplete="off">
+    <div class="card-body">
+      <div class="row g-2 align-items-end">
+        <div class="col-12 col-lg-9 relatorio-participante-search__field">
+          <label class="form-label small fw-semibold" for="relatorio-participante-q">Membro ou Visitante</label>
+          <div class="input-group">
+            <input type="text"
+                   id="relatorio-participante-q"
+                   class="form-control"
+                   placeholder="Buscar membro ou visitante (mín. 2 caracteres)..."
+                   value="{{ participante_label|default:''|upper }}"
+                   data-relatorio-participante-autocomplete-url="{% url 'tesouraria:membro_autocomplete_lancamento' %}">
+            <button type="button"
+                    class="btn btn-outline-secondary"
+                    id="relatorio-participante-clear"
+                    title="Limpar participante"
+                    aria-label="Limpar participante">
+              <i class="bi bi-x-lg" aria-hidden="true"></i>
+            </button>
+          </div>
+          <div id="relatorio-participante-results"
+               class="border rounded-3 shadow-sm bg-white w-100 autocomplete-dropdown relatorio-participante-results"></div>
+          <input type="hidden" id="relatorio-participante-tipo" name="participante_tipo" value="{{ participante_tipo }}">
+          <input type="hidden" id="relatorio-participante-id" name="participante_id" value="{% if participante %}{{ participante.pk }}{% endif %}">
+        </div>
+        <div class="col-12 col-lg-3">
+          <button type="submit" class="btn btn-app btn-app-primary w-100">Gerar relatório</button>
+        </div>
+      </div>
+    </div>
+  </form>
+
+  {% if participante %}
+    <div class="minhas-entradas-head">
+      <div>
+        <p class="text-muted small mb-1">
+          {% if participante_tipo == 'visitante' %}Visitante{% else %}Membro{% endif %}
+        </p>
+        <h2 class="h5 fw-bold text-dark mb-0">{{ participante.nome_completo|upper }}</h2>
+      </div>
+      {% if conjuge_entradas %}
+        <form class="minhas-entradas-conjuge-form"
+              hx-get="{% url 'tesouraria:relatorio_participantes_tabela' %}"
+              hx-target="#minhas-entradas-table-wrap"
+              hx-swap="innerHTML"
+              hx-indicator="#relatorio-participante-conjuge-indicator,#minhas-entradas-table-indicator"
+              hx-include="#minhas-entradas-table-filter"
+              hx-trigger="change from:#relatorio-participante-conjuge">
+          <input type="hidden" name="participante_tipo" value="{{ participante_tipo }}">
+          <input type="hidden" name="participante_id" value="{{ participante.pk }}">
+          <div class="d-flex align-items-center gap-2">
+            <div class="form-check form-switch mb-0">
+              <input class="form-check-input"
+                     type="checkbox"
+                     role="switch"
+                     id="relatorio-participante-conjuge"
+                     name="conjuge"
+                     value="1"
+                     {% if incluir_conjuge %}checked{% endif %}>
+              <label class="form-check-label fw-semibold small" for="relatorio-participante-conjuge">
+                Adicionar entradas do cônjuge
+                <span class="text-muted fw-normal">({{ conjuge_entradas.nome_completo }})</span>
+              </label>
+            </div>
+            <span id="relatorio-participante-conjuge-indicator"
+                  class="htmx-indicator spinner-border spinner-border-sm text-primary"
+                  role="status"
+                  aria-hidden="true"></span>
+          </div>
+        </form>
+      {% endif %}
+    </div>
+
+    {% include "tesouraria/partials/_minhas_entradas_chart.html" with chart_subtitle="Linha do tempo das entradas do participante selecionado." %}
+
+    <div class="position-relative">
+      <span id="minhas-entradas-table-indicator"
+            class="htmx-indicator position-absolute top-0 end-0 mt-2 me-2 spinner-border spinner-border-sm text-primary z-1"
+            role="status"
+            aria-hidden="true"></span>
+      <div id="minhas-entradas-table-wrap">
+        {% include "tesouraria/partials/_minhas_entradas_tabela.html" %}
+      </div>
+    </div>
+  {% else %}
+    <section class="card border-0 shadow-sm minhas-entradas-card">
+      <div class="card-body py-5 text-center text-muted">
+        <i class="bi bi-search fs-2 d-block mb-2" aria-hidden="true"></i>
+        <p class="mb-0 fw-semibold">Busque um membro ou visitante para gerar o relatório.</p>
+      </div>
+    </section>
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
+  <script src="{% static 'tesouraria/js/minhas_entradas_chart.js' %}?v=2"></script>
+  <script src="{% static 'tesouraria/js/relatorio_participantes.js' %}?v=1"></script>
+{% endblock %}

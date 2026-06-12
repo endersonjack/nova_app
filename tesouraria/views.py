@@ -306,6 +306,57 @@ def _minhas_entradas_base_qs(membro, *, incluir_conjuge=False):
     ).select_related('competencia', 'conta', 'categoria', 'evento', 'membro')
 
 
+def _relatorio_participante_de_request(request):
+    tipo = (request.GET.get('participante_tipo') or '').strip()
+    raw_id = (request.GET.get('participante_id') or '').strip()
+    if tipo not in ('membro', 'visitante') or not raw_id.isdigit():
+        return '', None
+    if tipo == 'membro':
+        participante = Membro.objects.filter(pk=int(raw_id), ativo=True).first()
+    else:
+        participante = Visitante.objects.filter(pk=int(raw_id), ativo=True).first()
+    return (tipo, participante) if participante else ('', None)
+
+
+def _relatorio_participante_conjuge(tipo, participante):
+    if tipo != 'membro' or not participante:
+        return None
+    return _conjuge_entradas_disponivel(participante)
+
+
+def _relatorio_incluir_conjuge_param(request, tipo, participante) -> bool:
+    return bool(
+        _relatorio_participante_conjuge(tipo, participante)
+        and request.GET.get('conjuge') == '1'
+    )
+
+
+def _relatorio_participante_base_qs(tipo, participante, *, incluir_conjuge=False):
+    if not participante:
+        return LancamentoFinanceiro.objects.none()
+    filtros = {
+        'tipo': TipoCategoriaFinanceira.ENTRADA,
+    }
+    if tipo == 'membro':
+        membros_ids = [participante.pk]
+        conjuge = _relatorio_participante_conjuge(tipo, participante)
+        if incluir_conjuge and conjuge:
+            membros_ids.append(conjuge.pk)
+        filtros['membro_id__in'] = membros_ids
+    elif tipo == 'visitante':
+        filtros['visitante_id'] = participante.pk
+    else:
+        return LancamentoFinanceiro.objects.none()
+    return LancamentoFinanceiro.objects.filter(**filtros).select_related(
+        'competencia',
+        'conta',
+        'categoria',
+        'evento',
+        'membro',
+        'visitante',
+    )
+
+
 def _month_add(year: int, month: int, delta: int) -> tuple[int, int]:
     total = year * 12 + (month - 1) + delta
     return total // 12, (total % 12) + 1
@@ -389,6 +440,30 @@ def _minhas_entradas_table_context(request, qs_base, hoje: date) -> dict:
     }
 
 
+def _minhas_entradas_table_extras() -> dict:
+    return {
+        'table_filter_url': reverse('tesouraria:minhas_entradas_tabela'),
+        'table_hx_include': '#minhas-entradas-conjuge',
+        'entradas_tabela_titulo': _('Minhas entradas'),
+        'entradas_tabela_vazio': _('Nenhuma entrada neste mês.'),
+    }
+
+
+def _relatorio_participantes_table_extras(tipo, participante) -> dict:
+    return {
+        'table_filter_url': reverse('tesouraria:relatorio_participantes_tabela'),
+        'table_hx_include': (
+            '#relatorio-participante-conjuge'
+            if _relatorio_participante_conjuge(tipo, participante)
+            else ''
+        ),
+        'entradas_tabela_titulo': _('Entradas do participante'),
+        'entradas_tabela_vazio': _('Nenhuma entrada neste mês para este participante.'),
+        'participante_tipo': tipo,
+        'participante_id': participante.pk if participante else '',
+    }
+
+
 @requer_modulo('tesouraria', edicao=False)
 @require_http_methods(['GET'])
 def index(request):
@@ -405,6 +480,7 @@ def minhas_entradas(request):
     qs_base = _minhas_entradas_base_qs(membro, incluir_conjuge=incluir_conjuge)
     chart = _minhas_entradas_chart_payload(qs_base, hoje)
     table_ctx = _minhas_entradas_table_context(request, qs_base, hoje)
+    table_ctx.update(_minhas_entradas_table_extras())
     return render(
         request,
         'tesouraria/minhas_entradas.html',
@@ -433,6 +509,82 @@ def minhas_entradas_tabela(request):
             'incluir_conjuge': incluir_conjuge,
             'chart': _minhas_entradas_chart_payload(qs_base, hoje),
             'chart_oob': True,
+            **_minhas_entradas_table_extras(),
+        }
+    )
+    return render(
+        request,
+        'tesouraria/partials/_minhas_entradas_tabela.html',
+        ctx,
+    )
+
+
+@requer_modulo('tesouraria', edicao=False)
+@require_http_methods(['GET'])
+def relatorio_participantes(request):
+    hoje = date.today()
+    participante_tipo, participante = _relatorio_participante_de_request(request)
+    incluir_conjuge = _relatorio_incluir_conjuge_param(
+        request,
+        participante_tipo,
+        participante,
+    )
+    conjuge = _relatorio_participante_conjuge(participante_tipo, participante)
+    qs_base = _relatorio_participante_base_qs(
+        participante_tipo,
+        participante,
+        incluir_conjuge=incluir_conjuge,
+    )
+    table_ctx = _minhas_entradas_table_context(request, qs_base, hoje)
+    table_ctx.update(_relatorio_participantes_table_extras(participante_tipo, participante))
+    return render(
+        request,
+        'tesouraria/relatorio_participantes.html',
+        {
+            'participante_tipo': participante_tipo,
+            'participante': participante,
+            'participante_label': participante.nome_completo if participante else '',
+            'conjuge_entradas': conjuge,
+            'incluir_conjuge': incluir_conjuge,
+            'chart_subtitle': _(
+                'Linha do tempo das entradas do participante selecionado.'
+            ),
+            'chart': _minhas_entradas_chart_payload(qs_base, hoje),
+            **table_ctx,
+        },
+    )
+
+
+@requer_modulo('tesouraria', edicao=False)
+@require_http_methods(['GET'])
+def relatorio_participantes_tabela(request):
+    hoje = date.today()
+    participante_tipo, participante = _relatorio_participante_de_request(request)
+    incluir_conjuge = _relatorio_incluir_conjuge_param(
+        request,
+        participante_tipo,
+        participante,
+    )
+    conjuge = _relatorio_participante_conjuge(participante_tipo, participante)
+    qs_base = _relatorio_participante_base_qs(
+        participante_tipo,
+        participante,
+        incluir_conjuge=incluir_conjuge,
+    )
+    ctx = _minhas_entradas_table_context(request, qs_base, hoje)
+    ctx.update(
+        {
+            'conjuge_entradas': conjuge,
+            'incluir_conjuge': incluir_conjuge,
+            'chart': _minhas_entradas_chart_payload(qs_base, hoje),
+            'chart_subtitle': _(
+                'Linha do tempo das entradas do participante selecionado.'
+            ),
+            'chart_oob': True,
+            **_relatorio_participantes_table_extras(
+                participante_tipo,
+                participante,
+            ),
         }
     )
     return render(

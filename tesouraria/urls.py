@@ -13,6 +13,16 @@ urlpatterns = [
         name='minhas_entradas_tabela',
     ),
     path(
+        'relatorio-membros-visitantes/',
+        views.relatorio_participantes,
+        name='relatorio_participantes',
+    ),
+    path(
+        'relatorio-membros-visitantes/tabela/',
+        views.relatorio_participantes_tabela,
+        name='relatorio_participantes_tabela',
+    ),
+    path(
         'membros/autocomplete/lancamento/',
         views.membro_autocomplete_lancamento,
         name='membro_autocomplete_lancamento',

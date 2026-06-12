@@ -9,7 +9,13 @@
     {% trans "Competências definem o mês e o ano de referência dos relatórios e lançamentos da tesouraria." %}
   </p>
   {% if acesso_modulos.tesouraria.ver %}
-  <div class="dropdown flex-shrink-0">
+  <div class="d-flex flex-wrap align-items-center justify-content-end gap-2 flex-shrink-0">
+    <a class="btn btn-app btn-app-primary px-3 d-inline-flex align-items-center gap-2"
+       href="{% url 'tesouraria:relatorio_participantes' %}">
+      <i class="bi bi-person-lines-fill" aria-hidden="true"></i>
+      {% trans "Relatório de Membros e Visitantes" %}
+    </a>
+  <div class="dropdown">
     <button type="button"
             class="btn btn-app btn-app-secondary px-3 dropdown-toggle d-inline-flex align-items-center gap-2"
             data-bs-toggle="dropdown"
@@ -50,6 +56,7 @@
       </li>
       {% endif %}
     </ul>
+  </div>
   </div>
   {% endif %}
 </div>

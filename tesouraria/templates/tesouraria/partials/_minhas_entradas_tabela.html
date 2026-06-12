@@ -3,11 +3,15 @@
 <form method="get"
       id="minhas-entradas-table-filter"
       class="card border-0 shadow-sm minhas-entradas-filter"
-      hx-get="{% url 'tesouraria:minhas_entradas_tabela' %}"
+      hx-get="{{ table_filter_url }}"
       hx-target="#minhas-entradas-table-wrap"
       hx-swap="innerHTML"
       hx-indicator="#minhas-entradas-table-indicator"
-      hx-include="#minhas-entradas-conjuge">
+      {% if table_hx_include %}hx-include="{{ table_hx_include }}"{% endif %}>
+  {% if participante_tipo and participante_id %}
+  <input type="hidden" name="participante_tipo" value="{{ participante_tipo }}">
+  <input type="hidden" name="participante_id" value="{{ participante_id }}">
+  {% endif %}
   <div class="card-body">
     <div class="row g-2 align-items-end">
       <div class="col-12 col-sm-5">
@@ -38,7 +42,7 @@
   <div class="card-body">
     <div class="d-flex align-items-center justify-content-between gap-3 flex-wrap mb-3">
       <div>
-        <h3 class="h6 fw-bold text-dark mb-1">Minhas entradas</h3>
+        <h3 class="h6 fw-bold text-dark mb-1">{{ entradas_tabela_titulo|default:"Minhas entradas" }}</h3>
         <p class="text-muted small mb-0">
           {% if selected_month %}{{ monthly_sections.0.label }} de {{ selected_year }}{% else %}Lançamentos de {{ selected_year }} separados por mês{% endif %}.
         </p>
@@ -79,7 +83,7 @@
                 </tr>
               {% empty %}
                 <tr>
-                  <td colspan="{% if incluir_conjuge %}6{% else %}5{% endif %}" class="text-center text-muted small py-3">Nenhuma entrada neste mês.</td>
+                  <td colspan="{% if incluir_conjuge %}6{% else %}5{% endif %}" class="text-center text-muted small py-3">{{ entradas_tabela_vazio|default:"Nenhuma entrada neste mês." }}</td>
                 </tr>
               {% endfor %}
             </tbody>

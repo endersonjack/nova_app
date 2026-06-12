@@ -9,7 +9,7 @@ from django.core.exceptions import PermissionDenied
 from django.http import HttpRequest
 from django.utils.translation import gettext as _
 
-from .models import ModuloSistema, UserProfile
+from .models import ModuloSistema, PapelMembro, UserProfile
 
 
 def get_perfil(user) -> UserProfile | None:
@@ -27,6 +27,8 @@ def usuario_pode_modulo(user, codigo: str, *, edicao: bool = False) -> bool:
         return False
     perfil = get_perfil(user)
     if perfil is None:
+        return False
+    if codigo == ModuloSistema.TESOURARIA and perfil.papel != PapelMembro.ADMIN:
         return False
     if edicao:
         return perfil.pode_editar_modulo(codigo)

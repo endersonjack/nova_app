@@ -53,6 +53,30 @@
   overflow: hidden;
 }
 
+.relatorio-participante-search {
+  border-radius: 0.9rem;
+  overflow: visible;
+}
+
+.relatorio-participante-search__field {
+  position: relative;
+}
+
+.relatorio-participante-results {
+  position: absolute;
+  top: calc(100% + 0.15rem);
+  left: calc(var(--bs-gutter-x) * 0.5);
+  right: calc(var(--bs-gutter-x) * 0.5);
+  z-index: 1085;
+  max-height: min(15rem, 42vh);
+  overflow-y: auto;
+  display: none;
+}
+
+.relatorio-participante-results:not(:empty) {
+  display: block;
+}
+
 .minhas-entradas-month {
   border: 1px solid #e2e8f0;
   border-radius: 0.8rem;
