@@ -208,7 +208,13 @@ def _build_secao_ctx(request, membro, slug, form=None, post=None, with_form=Fals
 
 @requer_modulo('membros', edicao=False)
 def index(request):
-    return render(request, 'membros/index.html')
+    return render(
+        request,
+        'membros/index.html',
+        {
+            'total_membros_cadastrados': membros_visiveis_queryset(request.user).count(),
+        },
+    )
 
 
 @requer_modulo('membros', edicao=False)

@@ -72,7 +72,13 @@ def _hx_response_ok_lista() -> HttpResponse:
 
 @requer_modulo('visitantes', edicao=False)
 def index(request):
-    return render(request, 'visitantes/index.html')
+    return render(
+        request,
+        'visitantes/index.html',
+        {
+            'total_visitantes_cadastrados': _visitante_queryset().count(),
+        },
+    )
 
 
 @requer_modulo('visitantes', edicao=False)

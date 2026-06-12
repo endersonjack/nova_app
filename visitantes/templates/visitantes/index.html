@@ -1,15 +1,25 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Visitantes{% endblock %}
-{% block page_title %}Visitantes{% endblock %}
+{% block page_title %}
+  <span class="mobile-gradient-title">
+    <span class="mobile-gradient-title__icon"><i class="bi bi-door-open" aria-hidden="true"></i></span>
+    <span>Visitantes <span class="d-lg-none">({{ total_visitantes_cadastrados }} Cadastrados)</span></span>
+  </span>
+{% endblock %}
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'visitantes/css/visitantes.css' %}" />
 {% endblock %}
 
 {% block content %}
-<div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-  <p class="text-muted mb-0">Cadastro de visitantes da igreja.</p>
+<div class="mobile-gradient-page d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
+  <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2 flex-grow-1 min-w-0">
+    <p class="text-muted mb-0">Cadastro de visitantes da igreja.</p>
+    <span class="badge rounded-pill text-bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 d-none d-lg-inline-flex">
+      Total de visitantes cadastrados: {{ total_visitantes_cadastrados }}
+    </span>
+  </div>
   {% if acesso_modulos.visitantes.editar %}
   <button type="button"
           class="btn btn-app btn-app-primary btn-sm px-3 d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0 position-relative"

@@ -1,7 +1,12 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Membros{% endblock %}
-{% block page_title %}Membros{% endblock %}
+{% block page_title %}
+  <span class="mobile-gradient-title">
+    <span class="mobile-gradient-title__icon"><i class="bi bi-person-badge" aria-hidden="true"></i></span>
+    <span>Membros <span class="d-lg-none">({{ total_membros_cadastrados }} Cadastrados)</span></span>
+  </span>
+{% endblock %}
 
 {% block extra_css %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
@@ -9,15 +14,20 @@
 {% endblock %}
 
 {% block content %}
-<div class="membro-lista-page">
+<div class="mobile-gradient-page membro-lista-page">
   <div class="membro-lista-page-head d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3 mb-4">
-    <p class="text-muted mb-0">
-      {% if membro_comum_somente_familia %}
-        Só vê os membros da sua família (vínculo do seu utilizador, cônjuge, filhos e pais cadastrados).
-      {% else %}
-        Cadastro de membros da igreja.
-      {% endif %}
-    </p>
+    <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center gap-2 flex-grow-1 min-w-0">
+      <p class="text-muted mb-0">
+        {% if membro_comum_somente_familia %}
+          Só vê os membros da sua família (vínculo do seu utilizador, cônjuge, filhos e pais cadastrados).
+        {% else %}
+          Cadastro de membros da igreja.
+        {% endif %}
+      </p>
+      <span class="badge rounded-pill text-bg-primary bg-opacity-10 text-primary border border-primary border-opacity-25 px-3 py-2 d-none d-lg-inline-flex">
+        Total de membros cadastrados: {{ total_membros_cadastrados }}
+      </span>
+    </div>
     {% if acesso_modulos.membros.editar %}
     <button type="button"
             class="btn btn-app btn-app-primary btn-sm px-3 d-inline-flex align-items-center justify-content-center gap-2 flex-shrink-0 position-relative"
