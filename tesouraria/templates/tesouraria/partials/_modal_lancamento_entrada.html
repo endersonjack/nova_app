@@ -12,6 +12,9 @@
   <form class="app-modal-form"
         method="post"
         id="form-lancamento-entrada"
+        data-tesouraria-entrada-form="1"
+        data-tesouraria-entrada-edit="{% if lancamento_pk %}1{% else %}0{% endif %}"
+        data-tesouraria-entrada-bound="{% if form.is_bound %}1{% else %}0{% endif %}"
         hx-post="{{ action_url }}"
         hx-target="#app-modal-content"
         hx-swap="innerHTML"
@@ -61,7 +64,7 @@
                    class="form-control"
                    autocomplete="off"
                    placeholder="{% trans 'Buscar membro ou visitante (mín. 2 caracteres)…' %}"
-                   value="{{ membro_busca_inicial|default:'' }}"
+                   value="{{ membro_busca_inicial|default:''|upper }}"
                    data-tesouraria-membro-autocomplete-url="{% url 'tesouraria:membro_autocomplete_lancamento' %}">
             <button type="button" class="btn btn-outline-secondary" id="lancamento-membro-clear" title="{% trans 'Limpar participante' %}" aria-label="{% trans 'Limpar participante' %}">
               <i class="bi bi-x-lg" aria-hidden="true"></i>

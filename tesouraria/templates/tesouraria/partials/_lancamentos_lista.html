@@ -1,20 +1,34 @@
-{% load i18n tesouraria_money %}
+{% load i18n tesouraria_money l10n %}
 
 {% with edit_base="tesouraria:lancamento_modal_editar" del_base="tesouraria:lancamento_modal_excluir" %}
 
 <h3 class="h6 fw-bold text-dark mb-2">{% trans "Entradas" %}</h3>
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-4">
   <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0">
+    <table class="table table-hover align-middle mb-0" data-tesouraria-sortable-table>
       <thead class="table-light">
         <tr>
-          <th scope="col" class="ps-4">{% trans "Data" %}</th>
-          <th scope="col">{% trans "Descrição" %}</th>
-          <th scope="col">{% trans "Categoria" %}</th>
-          <th scope="col">{% trans "Eventos" %}</th>
-          <th scope="col" class="text-end">{% trans "Valor (R$)" %}</th>
-          <th scope="col">{% trans "Membro/Visitante" %}</th>
-          <th scope="col">{% trans "Documento" %}</th>
+          <th scope="col" class="ps-4" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn" data-sort-index="0" data-sort-type="text">{% trans "Data" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn" data-sort-index="1" data-sort-type="text">{% trans "Descrição" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn" data-sort-index="2" data-sort-type="text">{% trans "Categoria" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn" data-sort-index="3" data-sort-type="text">{% trans "Eventos" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" class="text-end" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn justify-content-end ms-auto" data-sort-index="4" data-sort-type="number">{% trans "Valor (R$)" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn" data-sort-index="5" data-sort-type="text">{% trans "Membro/Visitante" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn" data-sort-index="6" data-sort-type="text">{% trans "Documento" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
           {% if pode_editar %}
           <th scope="col" class="pe-4 text-end" style="width: 4.5rem;">{% trans "Ações" %}</th>
           {% else %}
@@ -25,6 +39,7 @@
       <tbody>
         {% for lan in lancamentos_entrada %}
         <tr class="tesouraria-lancamento-row{% if pode_editar %} cursor-pointer{% endif %}"
+            data-sortable-row
             {% if pode_editar %}
             role="button"
             tabindex="0"
@@ -34,17 +49,17 @@
             hx-swap="innerHTML"
             hx-indicator="#tesouraria-lancamentos-ind"
             {% endif %}>
-          <td class="ps-4 text-nowrap text-secondary small">{{ lan.data|date:"SHORT_DATE_FORMAT" }}</td>
-          <td class="fw-medium text-dark">{{ lan.descricao|default:"—" }}</td>
-          <td class="text-secondary small">{{ lan.categoria.nome }}</td>
-          <td class="text-secondary small">
+          <td class="ps-4 text-nowrap text-secondary small" data-sort-value="{{ lan.data|date:'Y-m-d' }}">{{ lan.data|date:"SHORT_DATE_FORMAT" }}</td>
+          <td class="fw-medium text-dark" data-sort-value="{{ lan.descricao|default:''|lower }}">{{ lan.descricao|default:"—" }}</td>
+          <td class="text-secondary small" data-sort-value="{{ lan.categoria.nome|lower }}">{{ lan.categoria.nome }}</td>
+          <td class="text-secondary small" data-sort-value="{% if lan.evento_id %}{{ lan.evento.nome|lower }}{% endif %}">
             {% if lan.evento_id %}
             <span class="badge rounded-pill text-bg-secondary bg-opacity-10 text-secondary">{{ lan.evento.nome }}</span>
             {% else %}—{% endif %}
           </td>
-          <td class="text-end fw-semibold text-dark text-nowrap">{{ lan.valor|moeda_brl }}</td>
-          <td class="text-secondary small">{{ lan.participante_nome|default:"—" }}</td>
-          <td class="text-secondary small">{{ lan.numero_documento|default:"—" }}</td>
+          <td class="text-end fw-semibold text-dark text-nowrap" data-sort-value="{{ lan.valor|unlocalize }}">{{ lan.valor|moeda_brl }}</td>
+          <td class="fw-bold text-dark small" data-sort-value="{{ lan.participante_nome|default:''|lower }}">{{ lan.participante_nome|default:"—"|upper }}</td>
+          <td class="text-secondary small" data-sort-value="{{ lan.numero_documento|default:''|lower }}">{{ lan.numero_documento|default:"—" }}</td>
           <td class="pe-4 text-end text-nowrap" {% if pode_editar %}onclick="event.stopPropagation();"{% endif %}>
             {% if pode_editar %}
             <button type="button"
@@ -75,15 +90,27 @@
 <h3 class="h6 fw-bold text-dark mb-2">{% trans "Saídas" %}</h3>
 <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
   <div class="table-responsive">
-    <table class="table table-hover align-middle mb-0">
+    <table class="table table-hover align-middle mb-0" data-tesouraria-sortable-table>
       <thead class="table-light">
         <tr>
-          <th scope="col" class="ps-4">{% trans "Data" %}</th>
-          <th scope="col">{% trans "Descrição" %}</th>
-          <th scope="col">{% trans "Categoria" %}</th>
-          <th scope="col">{% trans "Eventos" %}</th>
-          <th scope="col" class="text-end">{% trans "Valor (R$)" %}</th>
-          <th scope="col">{% trans "Documento" %}</th>
+          <th scope="col" class="ps-4" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn" data-sort-index="0" data-sort-type="text">{% trans "Data" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn" data-sort-index="1" data-sort-type="text">{% trans "Descrição" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn" data-sort-index="2" data-sort-type="text">{% trans "Categoria" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn" data-sort-index="3" data-sort-type="text">{% trans "Eventos" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" class="text-end" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn justify-content-end ms-auto" data-sort-index="4" data-sort-type="number">{% trans "Valor (R$)" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
+          <th scope="col" aria-sort="none">
+            <button type="button" class="tesouraria-sort-btn" data-sort-index="5" data-sort-type="text">{% trans "Documento" %}<i class="bi bi-arrow-down-up" aria-hidden="true"></i></button>
+          </th>
           {% if pode_editar %}
           <th scope="col" class="pe-4 text-end" style="width: 4.5rem;">{% trans "Ações" %}</th>
           {% else %}
@@ -94,6 +121,7 @@
       <tbody>
         {% for lan in lancamentos_saida %}
         <tr class="tesouraria-lancamento-row{% if pode_editar %} cursor-pointer{% endif %}"
+            data-sortable-row
             {% if pode_editar %}
             role="button"
             tabindex="0"
@@ -103,16 +131,16 @@
             hx-swap="innerHTML"
             hx-indicator="#tesouraria-lancamentos-ind"
             {% endif %}>
-          <td class="ps-4 text-nowrap text-secondary small">{{ lan.data|date:"SHORT_DATE_FORMAT" }}</td>
-          <td class="fw-medium text-dark">{{ lan.descricao|default:"—" }}</td>
-          <td class="text-secondary small">{{ lan.categoria.nome }}</td>
-          <td class="text-secondary small">
+          <td class="ps-4 text-nowrap text-secondary small" data-sort-value="{{ lan.data|date:'Y-m-d' }}">{{ lan.data|date:"SHORT_DATE_FORMAT" }}</td>
+          <td class="fw-medium text-dark" data-sort-value="{{ lan.descricao|default:''|lower }}">{{ lan.descricao|default:"—" }}</td>
+          <td class="text-secondary small" data-sort-value="{{ lan.categoria.nome|lower }}">{{ lan.categoria.nome }}</td>
+          <td class="text-secondary small" data-sort-value="{% if lan.evento_id %}{{ lan.evento.nome|lower }}{% endif %}">
             {% if lan.evento_id %}
             <span class="badge rounded-pill text-bg-secondary bg-opacity-10 text-secondary">{{ lan.evento.nome }}</span>
             {% else %}—{% endif %}
           </td>
-          <td class="text-end fw-semibold text-dark text-nowrap">{{ lan.valor|moeda_brl }}</td>
-          <td class="text-secondary small">{{ lan.numero_documento|default:"—" }}</td>
+          <td class="text-end fw-semibold text-dark text-nowrap" data-sort-value="{{ lan.valor|unlocalize }}">{{ lan.valor|moeda_brl }}</td>
+          <td class="text-secondary small" data-sort-value="{{ lan.numero_documento|default:''|lower }}">{{ lan.numero_documento|default:"—" }}</td>
           <td class="pe-4 text-end text-nowrap" {% if pode_editar %}onclick="event.stopPropagation();"{% endif %}>
             {% if pode_editar %}
             <button type="button"

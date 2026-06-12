@@ -413,6 +413,40 @@ nav.app-sidebar {
   display: block;
 }
 
+.tesouraria-sort-btn {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  color: inherit;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  max-width: 100%;
+  padding: 0;
+  font: inherit;
+  font-weight: 700;
+  text-align: inherit;
+}
+
+.tesouraria-sort-btn:hover,
+.tesouraria-sort-btn:focus-visible {
+  color: var(--bs-primary);
+}
+
+.tesouraria-sort-btn .bi {
+  font-size: 0.8rem;
+  opacity: 0.45;
+}
+
+.tesouraria-sort-btn.is-asc .bi,
+.tesouraria-sort-btn.is-desc .bi {
+  opacity: 0.85;
+}
+
+.tesouraria-sort-btn.is-asc .bi {
+  transform: rotate(180deg);
+}
+
 /* Perigo (exclusão) */
 .btn-app-danger {
   background-color: #dc2626 !important;

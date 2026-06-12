@@ -1,4 +1,6 @@
 import json
+import re
+import unicodedata
 from calendar import monthrange
 from collections import defaultdict
 from datetime import date
@@ -74,6 +76,33 @@ MESES_PT = (
     'Novembro',
     'Dezembro',
 )
+
+
+def _normalizar_busca(texto) -> str:
+    base = unicodedata.normalize('NFKD', str(texto or ''))
+    sem_acento = ''.join(ch for ch in base if not unicodedata.combining(ch))
+    return sem_acento.casefold()
+
+
+def _somente_digitos(texto) -> str:
+    return re.sub(r'\D', '', str(texto or ''))
+
+
+def _filtrar_sem_acento(queryset, termo: str, campos: tuple[str, ...], limite=10):
+    termo_normalizado = _normalizar_busca(termo)
+    termo_digitos = _somente_digitos(termo)
+    encontrados = []
+    for obj in queryset:
+        valores = [str(getattr(obj, campo, '') or '') for campo in campos]
+        texto_normalizado = _normalizar_busca(' '.join(valores))
+        texto_digitos = _somente_digitos(' '.join(valores))
+        if termo_normalizado in texto_normalizado or (
+            termo_digitos and termo_digitos in texto_digitos
+        ):
+            encontrados.append(obj)
+            if len(encontrados) >= limite:
+                break
+    return encontrados
 
 
 def _agregados_por_conta_na_competencia(
@@ -1203,22 +1232,17 @@ def membro_autocomplete_lancamento(request):
         visitantes = Visitante.objects.none()
     else:
         base = membros_visiveis_queryset(request.user).filter(ativo=True)
-        membros = (
-            base.filter(
-                Q(nome_completo__icontains=q)
-                | Q(nome_conhecido__icontains=q)
-                | Q(cpf__icontains=q)
-            )
-            .order_by('nome_completo')[:10]
+        membros = _filtrar_sem_acento(
+            base.order_by('nome_completo'),
+            q,
+            ('nome_completo', 'nome_conhecido', 'cpf'),
+            limite=10,
         )
-        visitantes = (
-            Visitante.objects.filter(ativo=True)
-            .filter(
-                Q(nome_completo__icontains=q)
-                | Q(nome_conhecido__icontains=q)
-                | Q(telefone__icontains=q)
-            )
-            .order_by('nome_completo')[:10]
+        visitantes = _filtrar_sem_acento(
+            Visitante.objects.filter(ativo=True).order_by('nome_completo'),
+            q,
+            ('nome_completo', 'nome_conhecido', 'telefone'),
+            limite=10,
         )
     return render(
         request,
