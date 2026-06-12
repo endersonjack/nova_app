@@ -3,13 +3,16 @@
 {% block title %}{{ conta.nome }} · {% trans "Tesouraria" %}{% endblock %}
 {% block page_title_wrap_class %}{% endblock %}
 {% block page_title %}
-<span class="d-inline-flex align-items-center gap-2 flex-wrap min-w-0">
-  <span class="text-truncate">{{ conta.nome }}</span>
-  {% if conta.tipo == 'banco' %}
-  <span class="badge rounded-pill text-bg-primary bg-opacity-10 text-primary flex-shrink-0">{% trans "Banco" %}</span>
-  {% else %}
-  <span class="badge rounded-pill text-bg-warning bg-opacity-10 text-dark flex-shrink-0">{% trans "Caixa" %}</span>
-  {% endif %}
+<span class="mobile-gradient-title">
+  <span class="mobile-gradient-title__icon"><i class="bi bi-bank" aria-hidden="true"></i></span>
+  <span class="d-inline-flex align-items-center gap-2 flex-wrap min-w-0">
+    <span class="text-truncate">{{ conta.nome }}</span>
+    {% if conta.tipo == 'banco' %}
+    <span class="badge rounded-pill text-bg-primary bg-opacity-10 text-primary flex-shrink-0">{% trans "Banco" %}</span>
+    {% else %}
+    <span class="badge rounded-pill text-bg-warning bg-opacity-10 text-dark flex-shrink-0">{% trans "Caixa" %}</span>
+    {% endif %}
+  </span>
 </span>
 {% endblock %}
 
@@ -26,6 +29,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="mobile-gradient-page">
 <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3 mb-4">
   <a href="{% url 'tesouraria:competencia_detalhe' pk=competencia.pk %}"
      class="btn btn-app btn-app-secondary btn-sm px-3 align-self-start align-self-sm-center d-inline-flex align-items-center gap-2 text-decoration-none">
@@ -78,6 +82,7 @@
       </div>
     </div>
   </div>
+</div>
 </div>
 {% endblock %}
 

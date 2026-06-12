@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Mapa de membros{% endblock %}
-{% block page_title %}Mapa de membros{% endblock %}
+{% block page_title %}
+  {% include "includes/_mobile_gradient_title.html" with icone="bi-geo-alt" titulo="Mapa de membros" %}
+{% endblock %}
 
 {% block extra_css %}
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="" />
@@ -9,7 +11,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="membros-mapa-layout d-flex flex-column flex-grow-1">
+<div class="mobile-gradient-page membros-mapa-layout d-flex flex-column flex-grow-1">
   {% if not markers_payload %}
     <div class="alert alert-info border-0 shadow-sm mb-3 py-2 px-3 small" role="status">
       Nenhum membro com latitude e longitude cadastradas. Preencha o mapa na seção Localidade de cada registro.

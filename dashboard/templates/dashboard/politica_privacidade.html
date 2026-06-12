@@ -1,9 +1,11 @@
 {% extends "base.html" %}
 {% block title %}Política de privacidade{% endblock %}
-{% block page_title %}Política de privacidade{% endblock %}
+{% block page_title %}
+  {% include "includes/_mobile_gradient_title.html" with icone="bi-shield-check" titulo="Política de privacidade" %}
+{% endblock %}
 
 {% block content %}
-<article class="app-legal-prose mx-auto" style="max-width: 42rem;">
+<article class="mobile-gradient-page app-legal-prose mx-auto" style="max-width: 42rem;">
   <header class="mb-4 pb-3 border-bottom">
     <h1 class="h4 fw-bold text-dark mb-2">POLÍTICA DE PRIVACIDADE</h1>
     <p class="h6 text-muted mb-0">IGREJA NOVA TABERNÁCULO BATISTA</p>

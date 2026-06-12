@@ -1,14 +1,16 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}{{ visitante.nome_completo }} · Visitante{% endblock %}
-{% block page_title %}Registro de visitante{% endblock %}
+{% block page_title %}
+  {% include "includes/_mobile_gradient_title.html" with icone="bi-door-open" titulo="Registro de visitante" %}
+{% endblock %}
 
 {% block extra_css %}
   <link rel="stylesheet" href="{% static 'visitantes/css/visitantes.css' %}" />
 {% endblock %}
 
 {% block content %}
-<div class="visitante-detalhe-page" data-visitante-pk="{{ visitante.pk }}">
+<div class="mobile-gradient-page visitante-detalhe-page" data-visitante-pk="{{ visitante.pk }}">
   <header class="visitante-detalhe-topbar bg-white border-bottom shadow-sm">
     <div class="container-fluid py-3 px-3 px-lg-4">
       <div class="d-flex flex-wrap align-items-start gap-3 justify-content-between">

@@ -4,15 +4,18 @@
 {# Sem text-truncate no wrapper: o badge «Aberta» fica visível ao lado do título. #}
 {% block page_title_wrap_class %}{% endblock %}
 {% block page_title %}
-<span class="d-inline-flex align-items-center gap-2 flex-wrap min-w-0">
-  <span class="text-truncate">
-    {% if competencia.descricao %}{{ competencia.descricao }}{% else %}{{ competencia.mes|stringformat:"02d" }}/{{ competencia.ano }}{% endif %}
+<span class="mobile-gradient-title">
+  <span class="mobile-gradient-title__icon"><i class="bi bi-calendar-check" aria-hidden="true"></i></span>
+  <span class="d-inline-flex align-items-center gap-2 flex-wrap min-w-0">
+    <span class="text-truncate">
+      {% if competencia.descricao %}{{ competencia.descricao }}{% else %}{{ competencia.mes|stringformat:"02d" }}/{{ competencia.ano }}{% endif %}
+    </span>
+    {% if competencia.fechada %}
+    <span class="badge rounded-pill text-bg-secondary flex-shrink-0">{% trans "Fechada" %}</span>
+    {% else %}
+    <span class="badge rounded-pill text-bg-light text-success border border-success border-opacity-25 flex-shrink-0">{% trans "Aberta" %}</span>
+    {% endif %}
   </span>
-  {% if competencia.fechada %}
-  <span class="badge rounded-pill text-bg-secondary flex-shrink-0">{% trans "Fechada" %}</span>
-  {% else %}
-  <span class="badge rounded-pill text-bg-light text-success border border-success border-opacity-25 flex-shrink-0">{% trans "Aberta" %}</span>
-  {% endif %}
 </span>
 {% endblock %}
 
@@ -29,6 +32,7 @@
 {% endblock %}
 
 {% block content %}
+<div class="mobile-gradient-page">
 <div class="d-flex flex-column flex-sm-row align-items-stretch align-items-sm-center justify-content-between gap-3 mb-4">
   <a href="{% url 'tesouraria:index' %}"
      class="btn btn-app btn-app-secondary btn-sm px-3 align-self-start align-self-sm-center d-inline-flex align-items-center gap-2 text-decoration-none">
@@ -371,4 +375,5 @@
   </div>
 </div>
 </section>
+</div>
 {% endblock %}

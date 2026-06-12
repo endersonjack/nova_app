@@ -1,7 +1,9 @@
 {% extends "base.html" %}
 {% load static %}
 {% block title %}Estatística{% endblock %}
-{% block page_title %}Estatística{% endblock %}
+{% block page_title %}
+  {% include "includes/_mobile_gradient_title.html" with icone="bi-pie-chart" titulo="Estatística" %}
+{% endblock %}
 {% block page_subtitle %}
   {% if estatistica_escopo_familia %}
     <p class="text-muted small mb-0">Estatísticas da sua família.</p>
@@ -9,7 +11,7 @@
 {% endblock %}
 
 {% block content %}
-<div class="position-relative">
+<div class="position-relative mobile-gradient-page">
   <span id="dashboard-estatistica-ind"
         class="htmx-indicator position-absolute top-0 end-0 mt-n1 me-1 spinner-border spinner-border-sm text-primary z-1"
         role="status"

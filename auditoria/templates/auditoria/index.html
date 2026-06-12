@@ -1,12 +1,17 @@
 {% extends "base.html" %}
 {% block title %}Auditoria{% endblock %}
-{% block page_title %}Auditoria{% endblock %}
+{% block page_title %}
+  <span class="mobile-gradient-title">
+    <span class="mobile-gradient-title__icon"><i class="bi bi-clipboard-check" aria-hidden="true"></i></span>
+    <span>Auditoria</span>
+  </span>
+{% endblock %}
 {% block page_subtitle %}<p class="text-muted small mb-0">Registo de alterações nos módulos (por agora: Membros).</p>{% endblock %}
 
 {% block content %}
-<div class="card border-0 shadow-sm">
+<div class="mobile-gradient-page card border-0 shadow-sm">
   <div class="card-body p-0">
-    <form method="get" class="row g-2 align-items-end p-3 pb-0 border-bottom bg-light bg-opacity-50">
+    <form method="get" class="audit-filter-form row g-2 align-items-end p-3 pb-0 border-bottom bg-light bg-opacity-50">
       <div class="col-auto">
         <label class="form-label small text-muted mb-0" for="filtro-modulo">Módulo</label>
         <select name="modulo" id="filtro-modulo" class="form-select form-select-sm">
@@ -40,8 +45,8 @@
       </div>
     </form>
 
-    <div class="table-responsive">
-      <table class="table table-hover align-middle mb-0 small">
+    <div class="audit-log-wrapper table-responsive">
+      <table class="audit-log-table table table-hover align-middle mb-0 small">
         <thead class="table-light">
           <tr>
             <th scope="col" class="text-nowrap">Data / hora</th>
@@ -55,16 +60,16 @@
           {% for row in rows %}
             {% with log=row.log %}
             <tr>
-              <td class="text-nowrap text-muted">{{ log.criado_em|date:"d/m/Y H:i:s" }}</td>
-              <td>{% if log.usuario %}{{ log.usuario.get_username }}{% else %}<span class="text-muted">Sistema</span>{% endif %}</td>
-              <td><span class="badge text-bg-{{ row.tipo_badge }}">{{ log.get_tipo_display }}</span></td>
-              <td><span class="badge text-bg-secondary">{{ log.modulo }}</span></td>
-              <td class="text-break">{{ log.detalhes }}</td>
+              <td class="audit-log-time text-nowrap text-muted">{{ log.criado_em|date:"d/m/Y H:i:s" }}</td>
+              <td class="audit-log-user">{% if log.usuario %}{{ log.usuario.get_username }}{% else %}<span class="text-muted">Sistema</span>{% endif %}</td>
+              <td class="audit-log-type"><span class="badge text-bg-{{ row.tipo_badge }}">{{ log.get_tipo_display }}</span></td>
+              <td class="audit-log-module"><span class="badge text-bg-secondary">{{ log.modulo }}</span></td>
+              <td class="audit-log-details text-break">{{ log.detalhes }}</td>
             </tr>
             {% endwith %}
           {% empty %}
             <tr>
-              <td colspan="5" class="text-center text-muted py-5">Nenhum registo encontrado.</td>
+              <td colspan="5" class="audit-log-empty text-center text-muted py-5">Nenhum registo encontrado.</td>
             </tr>
           {% endfor %}
         </tbody>

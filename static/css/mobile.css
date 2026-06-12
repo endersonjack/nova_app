@@ -69,7 +69,18 @@
     display: inline-flex;
     align-items: center;
     gap: 0.65rem;
+    max-width: 100%;
     min-width: 0;
+  }
+
+  .mobile-gradient-title > span:last-child {
+    min-width: 0;
+  }
+
+  .mobile-gradient-title > span:last-child:not(.d-inline-flex) {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .mobile-gradient-title__icon {
@@ -269,6 +280,119 @@
 
   .row {
     --bs-gutter-x: 0;
+  }
+
+  .audit-filter-form {
+    gap: 0.45rem !important;
+    padding: 0.75rem !important;
+  }
+
+  .audit-filter-form .col-auto {
+    flex: 1 1 calc(50% - 0.45rem);
+    min-width: 0;
+  }
+
+  .audit-filter-form .col-auto:last-child {
+    flex: 0 0 auto;
+  }
+
+  .audit-filter-form .form-label {
+    font-size: 0.68rem;
+  }
+
+  .audit-filter-form .form-select,
+  .audit-filter-form .btn {
+    min-height: 2rem;
+    font-size: 0.78rem;
+  }
+
+  .audit-log-wrapper {
+    overflow: visible;
+  }
+
+  .audit-log-table,
+  .audit-log-table tbody,
+  .audit-log-table tr,
+  .audit-log-table td {
+    display: block;
+    width: 100%;
+  }
+
+  .audit-log-table thead {
+    display: none;
+  }
+
+  .audit-log-table tbody tr {
+    display: grid;
+    grid-template-areas:
+      "time type"
+      "user module"
+      "details details";
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 0.18rem 0.45rem;
+    padding: 0.55rem 0.65rem;
+    border-bottom: 1px solid #e2e8f0;
+  }
+
+  .audit-log-table tbody tr:last-child {
+    border-bottom: 0;
+  }
+
+  .audit-log-table tbody td {
+    padding: 0 !important;
+    border: 0 !important;
+    vertical-align: top;
+  }
+
+  .audit-log-time {
+    grid-area: time;
+    font-size: 0.72rem;
+    line-height: 1.25;
+  }
+
+  .audit-log-user {
+    grid-area: user;
+    min-width: 0;
+    overflow: hidden;
+    color: #111827;
+    font-size: 0.78rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .audit-log-type {
+    grid-area: type;
+    justify-self: end;
+  }
+
+  .audit-log-module {
+    grid-area: module;
+    justify-self: end;
+  }
+
+  .audit-log-type .badge,
+  .audit-log-module .badge {
+    padding: 0.22rem 0.4rem;
+    font-size: 0.65rem;
+    line-height: 1;
+  }
+
+  .audit-log-details {
+    grid-area: details;
+    max-height: 3.75rem;
+    margin-top: 0.12rem;
+    overflow-y: auto;
+    color: #475569;
+    font-size: 0.74rem;
+    line-height: 1.25;
+  }
+
+  .audit-log-empty {
+    max-height: none;
+    padding: 1.5rem 0.75rem !important;
+    text-align: center;
   }
 
   .card,
