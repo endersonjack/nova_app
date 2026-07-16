@@ -126,111 +126,13 @@
         tabindex="-1"></iframe>
 
 <section aria-labelledby="competencia-contas-titulo">
-<h2 id="competencia-contas-titulo" class="h4 fw-bold text-dark mb-2 mt-2">{% trans "Contas e caixas" %}</h2>
-<p class="text-body mb-3 mb-sm-4 fw-medium">{% trans "Lista de caixas e contas desta competência. Clique para abrir e ver detalhes dos lançamentos." %}</p>
+<h2 id="competencia-contas-titulo" class="h4 fw-bold text-dark mb-2 mt-2">
+  {% trans "Resumo Competência" %} {{ competencia.mes|stringformat:"02d" }}/{{ competencia.ano }}
+</h2>
+<p class="text-body mb-3 mb-sm-4 fw-medium">{% trans "Clique em uma conta ou caixa para abrir os lançamentos. O acumulado soma todas as competências anteriores e a competência atual." %}</p>
 <div class="card border-0 shadow-lg rounded-4 overflow-hidden bg-white">
   <div class="table-responsive">
     <table class="table table-hover align-middle mb-0">
-      <thead class="table-light">
-        <tr>
-          <th scope="col" class="ps-4">{% trans "Nome" %}</th>
-          <th scope="col">{% trans "Tipo" %}</th>
-          <th scope="col">{% trans "Descrição" %}</th>
-          <th scope="col" class="text-end pe-4">{% trans "Saldo" %}</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for conta in contas %}
-        <tr role="link"
-            tabindex="0"
-            aria-label="{% trans 'Abrir conta ou caixa' %} {{ conta.nome }}"
-            data-href="{% url 'tesouraria:conta_detalhe' competencia_pk=competencia.pk conta_pk=conta.pk %}">
-          <td class="ps-4 fw-semibold text-dark">{{ conta.nome }}</td>
-          <td>
-            {% if conta.tipo == 'banco' %}
-            <span class="badge rounded-pill text-bg-primary bg-opacity-10 text-primary">{% trans "Banco" %}</span>
-            {% else %}
-            <span class="badge rounded-pill text-bg-warning bg-opacity-10 text-dark">{% trans "Caixa" %}</span>
-            {% endif %}
-          </td>
-          <td class="text-secondary small">{{ conta.descricao|default:"—"|truncatechars:80 }}</td>
-          <td class="text-end fw-semibold text-nowrap pe-4">
-            {% with s=saldo_por_conta|saldo_na_conta:conta %}
-            {% if s < 0 %}
-            <span class="text-danger">{{ s|moeda_brl }}</span>
-            {% else %}
-            <span class="text-dark">{{ s|moeda_brl }}</span>
-            {% endif %}
-            {% endwith %}
-          </td>
-        </tr>
-        {% empty %}
-        <tr>
-          <td colspan="4" class="text-center text-muted py-5">
-            {% trans "Nenhuma conta ou caixa cadastrada." %}
-            {% if pode_editar %}
-            <span class="d-block small mt-1">{% trans "Use «Novo caixa» ou «Nova conta» para adicionar." %}</span>
-            {% endif %}
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  <div class="card-body py-3 px-4 border-top border-primary border-opacity-25 bg-primary bg-opacity-10 tesouraria-saldo-destaque">
-    <div class="d-flex flex-column flex-sm-row align-items-start align-items-sm-center justify-content-between gap-1">
-      <span class="fw-bold text-dark">{% trans "Saldo do mês" %}</span>
-      <span class="fs-6 fw-bold text-nowrap">
-        {% if competencia_saldo_geral < 0 %}
-        <span class="text-danger">{{ competencia_saldo_geral|moeda_brl }}</span>
-        {% else %}
-        <span class="text-dark">{{ competencia_saldo_geral|moeda_brl }}</span>
-        {% endif %}
-      </span>
-    </div>
-  </div>
-</div>
-</section>
-
-<section class="mt-5 pt-4 border-top border-light">
-<h3 class="h6 fw-semibold text-secondary text-uppercase small mb-2">{% trans "Resumo geral da competência" %}</h3>
-<p class="text-muted small mb-3">
-  {% trans "Totais de lançamentos deste mês/ano por cada conta ou caixa cadastrada (inclui linhas com R$ 0,00 se não houver movimento nesta competência)." %}
-</p>
-<div class="card border border-light shadow-sm rounded-4 overflow-hidden bg-white">
-  <div class="card-body py-3 border-bottom">
-    {% if pode_editar %}
-    <form method="post"
-          hx-post="{% url 'tesouraria:competencia_definir_continua' pk=competencia.pk %}"
-          hx-trigger="change from:#id-competencia-continua-resumo"
-          hx-swap="none">
-      {% csrf_token %}
-      <div class="form-check mb-0">
-        <input class="form-check-input"
-               type="checkbox"
-               name="competencia_continua"
-               id="id-competencia-continua-resumo"
-               {% if competencia.competencia_continua %}checked{% endif %}>
-        <label class="form-check-label fw-medium" for="id-competencia-continua-resumo">
-          {% trans "Competência contínua" %}
-        </label>
-      </div>
-      <p class="form-text small mb-0 mt-1">
-        {% trans "Quando ativo, o fechamento soma o saldo acumulado da competência imediatamente anterior (e segue a cadeia de meses marcados como contínuos)." %}
-      </p>
-    </form>
-    {% else %}
-    <p class="small text-muted mb-0">
-      {% if competencia.competencia_continua %}
-      {% trans "Competência contínua: ativa (o fechamento inclui o acumulado anterior)." %}
-      {% else %}
-      {% trans "Competência contínua: inativa (apenas movimentos deste mês/ano no fechamento)." %}
-      {% endif %}
-    </p>
-    {% endif %}
-  </div>
-  <div class="table-responsive">
-    <table class="table table-sm align-middle mb-0">
       <thead class="table-light">
         <tr>
           <th scope="col" class="ps-4">{% trans "Nome" %}</th>
@@ -242,8 +144,11 @@
       </thead>
       <tbody>
         {% for item in resumo_contas %}
-        <tr>
-          <td class="ps-4 fw-medium text-dark">{{ item.conta.nome }}</td>
+        <tr role="link"
+            tabindex="0"
+            aria-label="{% trans 'Abrir conta ou caixa' %} {{ item.conta.nome }}"
+            data-href="{% url 'tesouraria:conta_detalhe' competencia_pk=competencia.pk conta_pk=item.conta.pk %}">
+          <td class="ps-4 fw-semibold text-dark">{{ item.conta.nome }}</td>
           <td>
             {% if item.conta.tipo == 'banco' %}
             <span class="badge rounded-pill text-bg-primary bg-opacity-10 text-primary">{% trans "Banco" %}</span>
@@ -265,40 +170,49 @@
         <tr>
           <td colspan="5" class="text-center text-muted py-4 small">
             {% trans "Nenhuma conta ou caixa cadastrada." %}
+            {% if pode_editar %}
+            <span class="d-block small mt-1">{% trans "Use «Novo caixa» ou «Nova conta» para adicionar." %}</span>
+            {% endif %}
           </td>
         </tr>
         {% endfor %}
       </tbody>
-      <tfoot class="table-light border-top">
-        {% if competencia.competencia_continua %}
-        <tr class="border-top">
-          <th scope="row" class="ps-4 fw-normal text-wrap" colspan="2">
-            {% if competencia_prev %}
-            {% trans "Saldo acumulado até" %} {{ competencia_prev.mes|stringformat:"02d" }}/{{ competencia_prev.ano }}
-            {% else %}
-            {% trans "Saldo acumulado (sem competência anterior cadastrada)" %}
-            {% endif %}
+      <tfoot class="table-light border-top tesouraria-resumo-unificado">
+        <tr class="tesouraria-saldo-destaque">
+          <th scope="row" class="ps-4 fw-bold" colspan="2">
+            {% trans "Saldo da Competência" %} ({{ competencia.mes|stringformat:"02d" }}/{{ competencia.ano }})
           </th>
-          <td class="text-end text-muted">—</td>
-          <td class="text-end text-muted">—</td>
-          <td class="text-end fw-semibold text-nowrap pe-4">
-            {% if saldo_trazido_anterior < 0 %}
-            <span class="text-danger">{{ saldo_trazido_anterior|moeda_brl }}</span>
+          <td class="text-end fw-bold text-success text-nowrap">{{ totais_competencia.entradas|moeda_brl }}</td>
+          <td class="text-end fw-bold text-danger text-nowrap">{{ totais_competencia.saidas|moeda_brl }}</td>
+          <td class="text-end fw-bold text-nowrap pe-4">
+            {% if totais_competencia.saldo < 0 %}
+            <span class="text-danger">{{ totais_competencia.saldo|moeda_brl }}</span>
             {% else %}
-            <span class="text-dark">{{ saldo_trazido_anterior|moeda_brl }}</span>
+            <span class="text-dark">{{ totais_competencia.saldo|moeda_brl }}</span>
             {% endif %}
           </td>
         </tr>
-        {% endif %}
-        <tr class="tesouraria-saldo-destaque">
-          <th scope="row" class="ps-4 fw-bold" colspan="2">{% trans "Saldo geral (fechamento)" %}</th>
-          <td class="text-end fw-bold text-success text-nowrap">{{ competencia_total_entradas|moeda_brl }}</td>
-          <td class="text-end fw-bold text-danger text-nowrap">{{ competencia_total_saidas|moeda_brl }}</td>
-          <td class="text-end fw-bold text-nowrap pe-4">
-            {% if competencia_saldo_geral_final < 0 %}
-            <span class="text-danger">{{ competencia_saldo_geral_final|moeda_brl }}</span>
+        <tr class="border-top table-light text-muted">
+          <th scope="row" class="ps-4 fw-bold text-muted" colspan="2">
+            {% if competencia_anterior_acumulado %}
+            {% trans "Saldo anterior" %} ({% trans "competência" %} {{ competencia_anterior_acumulado.mes|stringformat:"02d" }}/{{ competencia_anterior_acumulado.ano }})
             {% else %}
-            <span class="text-dark">{{ competencia_saldo_geral_final|moeda_brl }}</span>
+            {% trans "Saldo anterior" %} ({% trans "sem competência anterior" %})
+            {% endif %}
+          </th>
+          <td class="text-end fw-bold text-muted text-nowrap">{{ totais_anteriores.entradas|moeda_brl }}</td>
+          <td class="text-end fw-bold text-muted text-nowrap">{{ totais_anteriores.saidas|moeda_brl }}</td>
+          <td class="text-end fw-bold text-muted text-nowrap pe-4">{{ totais_anteriores.saldo|moeda_brl }}</td>
+        </tr>
+        <tr class="tesouraria-saldo-destaque tesouraria-saldo-acumulado">
+          <th scope="row" class="ps-4 fw-bold" colspan="2">{% trans "Saldo Geral Acumulado" %}</th>
+          <td class="text-end fw-bold text-success text-nowrap">{{ totais_acumulados.entradas|moeda_brl }}</td>
+          <td class="text-end fw-bold text-danger text-nowrap">{{ totais_acumulados.saidas|moeda_brl }}</td>
+          <td class="text-end fw-bold text-nowrap pe-4">
+            {% if totais_acumulados.saldo < 0 %}
+            <span class="text-danger">{{ totais_acumulados.saldo|moeda_brl }}</span>
+            {% else %}
+            <span class="text-dark">{{ totais_acumulados.saldo|moeda_brl }}</span>
             {% endif %}
           </td>
         </tr>
@@ -307,11 +221,7 @@
   </div>
   <div class="card-body py-2 px-4 border-top bg-light bg-opacity-50">
     <p class="small text-muted mb-0">
-      {% if competencia.competencia_continua %}
-      {% trans "As colunas de entradas e saídas no fechamento referem-se só a este mês/ano. A última coluna é o saldo acumulado após este período (inclui a cadeia de competências contínuas anteriores, quando existirem)." %}
-      {% else %}
-      {% trans "O fechamento considera apenas os lançamentos deste mês/ano, em todas as contas e caixas." %}
-      {% endif %}
+      {% trans "As linhas de contas e caixas mostram apenas os movimentos desta competência. As linhas de saldo consolidam a competência atual, o saldo anterior acumulado e o saldo geral acumulado até este mês/ano." %}
     </p>
   </div>
 </div>

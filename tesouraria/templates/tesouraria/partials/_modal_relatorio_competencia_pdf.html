@@ -22,8 +22,8 @@
             <div class="form-check mb-2">
               <input class="form-check-input" type="checkbox" name="inc_contas" id="rel-pdf-contas" checked>
               <label class="form-check-label" for="rel-pdf-contas">
-                <span class="fw-medium">{% trans "Caixas e contas" %}</span>
-                <span class="d-block small text-muted">{% trans "Cada conta com todos os lançamentos desta competência." %}</span>
+                <span class="fw-medium">{% trans "Movimentos por data" %}</span>
+                <span class="d-block small text-muted">{% trans "Entradas e saídas da competência, com contas e caixas juntas." %}</span>
               </label>
             </div>
             <div class="form-check mb-2">
@@ -36,8 +36,8 @@
             <div class="form-check mb-0">
               <input class="form-check-input" type="checkbox" name="inc_resumo_geral" id="rel-pdf-geral" checked>
               <label class="form-check-label" for="rel-pdf-geral">
-                <span class="fw-medium">{% trans "Resumo geral" %}</span>
-                <span class="d-block small text-muted">{% trans "Totais por conta e indicação de competência contínua ou não." %}</span>
+                <span class="fw-medium">{% trans "Resumos da competência" %}</span>
+                <span class="d-block small text-muted">{% trans "Tabela igual à tela da competência, com saldos e acumulado." %}</span>
               </label>
             </div>
           </fieldset>
@@ -58,9 +58,13 @@
             <button type="button" class="btn btn-app btn-app-secondary btn-sm px-3" data-bs-dismiss="modal">
               {% trans "Cancelar" %}
             </button>
-            <button type="submit" class="btn btn-app btn-app-primary btn-sm px-3 d-inline-flex align-items-center gap-2">
+            <button type="submit"
+                    class="btn btn-app btn-app-primary btn-sm px-3 d-inline-flex align-items-center gap-2"
+                    id="btn-gerar-relatorio-competencia-pdf"
+                    data-loading-label="{% trans 'Gerando...' %}">
+              <span class="spinner-border spinner-border-sm d-none" aria-hidden="true"></span>
               <i class="bi bi-file-earmark-pdf" aria-hidden="true"></i>
-              {% trans "Gerar PDF" %}
+              <span class="btn-loading-label">{% trans "Gerar PDF" %}</span>
             </button>
           </div>
         </form>
@@ -68,3 +72,33 @@
     </div>
   </div>
 </div>
+<script>
+(function () {
+  var form = document.getElementById('form-relatorio-competencia-pdf');
+  var button = document.getElementById('btn-gerar-relatorio-competencia-pdf');
+  var frame = document.querySelector('iframe[name="tesouraria-pdf-frame"]');
+  if (!form || !button) return;
+
+  var label = button.querySelector('.btn-loading-label');
+  var spinner = button.querySelector('.spinner-border');
+  var icon = button.querySelector('.bi');
+  var originalLabel = label ? label.textContent : '';
+
+  function setLoading(active) {
+    button.disabled = active;
+    if (spinner) spinner.classList.toggle('d-none', !active);
+    if (icon) icon.classList.toggle('d-none', active);
+    if (label) label.textContent = active ? (button.dataset.loadingLabel || 'Gerando...') : originalLabel;
+  }
+
+  form.addEventListener('submit', function () {
+    setLoading(true);
+  });
+
+  if (frame) {
+    frame.addEventListener('load', function () {
+      setLoading(false);
+    }, { once: false });
+  }
+})();
+</script>

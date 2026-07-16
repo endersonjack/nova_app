@@ -137,6 +137,57 @@ def _agregados_por_conta_na_competencia(
     return out
 
 
+def _totais_lancamentos(qs) -> dict[str, Decimal]:
+    """Totais de entradas, saídas e saldo para um conjunto de lançamentos."""
+    dec = DecimalField(max_digits=12, decimal_places=2)
+    totais = qs.aggregate(
+        entradas=Coalesce(
+            Sum('valor', filter=Q(tipo=TipoCategoriaFinanceira.ENTRADA)),
+            Value(Decimal('0')),
+            output_field=dec,
+        ),
+        saidas=Coalesce(
+            Sum('valor', filter=Q(tipo=TipoCategoriaFinanceira.SAIDA)),
+            Value(Decimal('0')),
+            output_field=dec,
+        ),
+    )
+    entradas = totais['entradas'] or Decimal('0')
+    saidas = totais['saidas'] or Decimal('0')
+    return {
+        'entradas': entradas,
+        'saidas': saidas,
+        'saldo': entradas - saidas,
+    }
+
+
+def _lancamentos_anteriores_a_competencia(competencia: CompetenciaTesouraria):
+    return LancamentoFinanceiro.objects.filter(
+        Q(competencia__ano__lt=competencia.ano)
+        | Q(competencia__ano=competencia.ano, competencia__mes__lt=competencia.mes)
+    )
+
+
+def _lancamentos_ate_competencia(competencia: CompetenciaTesouraria):
+    return LancamentoFinanceiro.objects.filter(
+        Q(competencia__ano__lt=competencia.ano)
+        | Q(competencia__ano=competencia.ano, competencia__mes__lte=competencia.mes)
+    )
+
+
+def _ultima_competencia_anterior(
+    competencia: CompetenciaTesouraria,
+) -> CompetenciaTesouraria | None:
+    return (
+        CompetenciaTesouraria.objects.filter(
+            Q(ano__lt=competencia.ano)
+            | Q(ano=competencia.ano, mes__lt=competencia.mes)
+        )
+        .order_by('-ano', '-mes')
+        .first()
+    )
+
+
 def _resumo_eventos_na_competencia(competencia: CompetenciaTesouraria) -> list[dict]:
     """Totais de entradas/saídas nesta competência agrupados por evento (só lançamentos com evento)."""
     dec = DecimalField(max_digits=12, decimal_places=2)
@@ -658,7 +709,6 @@ def competencia_detalhe(request, pk):
     competencia = get_object_or_404(CompetenciaTesouraria, pk=pk)
     contas = ContaFinanceira.objects.all()
     agregados = _agregados_por_conta_na_competencia(competencia)
-    saldo_por_conta = {cid: d['saldo'] for cid, d in agregados.items()}
     zero = {
         'entradas': Decimal('0'),
         'saidas': Decimal('0'),
@@ -668,9 +718,17 @@ def competencia_detalhe(request, pk):
     for conta in ContaFinanceira.objects.all().order_by('tipo', 'nome'):
         d = agregados.get(conta.pk, zero)
         resumo_contas.append({'conta': conta, **d})
-    total_entradas = sum(d['entradas'] for d in agregados.values())
-    total_saidas = sum(d['saidas'] for d in agregados.values())
+    totais_competencia = _totais_lancamentos(
+        LancamentoFinanceiro.objects.filter(competencia=competencia)
+    )
+    totais_anteriores = _totais_lancamentos(
+        _lancamentos_anteriores_a_competencia(competencia)
+    )
+    totais_acumulados = _totais_lancamentos(
+        _lancamentos_ate_competencia(competencia)
+    )
     competencia_prev = _competencia_anterior(competencia)
+    competencia_anterior_acumulado = _ultima_competencia_anterior(competencia)
     if competencia.competencia_continua:
         saldo_trazido_anterior = (
             _fechamento_apos_competencia(competencia_prev)
@@ -701,14 +759,17 @@ def competencia_detalhe(request, pk):
         {
             'competencia': competencia,
             'contas': contas,
-            'saldo_por_conta': saldo_por_conta,
             'resumo_contas': resumo_contas,
-            'competencia_total_entradas': total_entradas,
-            'competencia_total_saidas': total_saidas,
-            'competencia_saldo_geral': total_entradas - total_saidas,
+            'competencia_total_entradas': totais_competencia['entradas'],
+            'competencia_total_saidas': totais_competencia['saidas'],
+            'competencia_saldo_geral': totais_competencia['saldo'],
             'competencia_prev': competencia_prev,
+            'competencia_anterior_acumulado': competencia_anterior_acumulado,
             'saldo_trazido_anterior': saldo_trazido_anterior,
             'competencia_saldo_geral_final': competencia_saldo_geral_final,
+            'totais_competencia': totais_competencia,
+            'totais_anteriores': totais_anteriores,
+            'totais_acumulados': totais_acumulados,
             'resumo_eventos': resumo_eventos,
             'resumo_eventos_totais': resumo_eventos_totais,
             'pode_editar': pode_editar,
@@ -742,9 +803,19 @@ def competencia_relatorio_pdf(request, pk):
     for conta in contas:
         d = agregados.get(conta.pk, zero)
         resumo_contas.append({'conta': conta, **d})
-    total_entradas = sum(d['entradas'] for d in agregados.values())
-    total_saidas = sum(d['saidas'] for d in agregados.values())
+    totais_competencia = _totais_lancamentos(
+        LancamentoFinanceiro.objects.filter(competencia=competencia)
+    )
+    total_entradas = totais_competencia['entradas']
+    total_saidas = totais_competencia['saidas']
+    totais_anteriores = _totais_lancamentos(
+        _lancamentos_anteriores_a_competencia(competencia)
+    )
+    totais_acumulados = _totais_lancamentos(
+        _lancamentos_ate_competencia(competencia)
+    )
     competencia_prev = _competencia_anterior(competencia)
+    competencia_anterior_acumulado = _ultima_competencia_anterior(competencia)
     if competencia.competencia_continua:
         saldo_trazido_anterior = (
             _fechamento_apos_competencia(competencia_prev)
@@ -780,10 +851,13 @@ def competencia_relatorio_pdf(request, pk):
         lancamentos_por_conta=dict(lancamentos_por_conta),
         resumo_contas=resumo_contas,
         competencia_prev=competencia_prev,
+        competencia_anterior_acumulado=competencia_anterior_acumulado,
         saldo_trazido_anterior=saldo_trazido_anterior,
         competencia_saldo_geral_final=competencia_saldo_geral_final,
         competencia_total_entradas=total_entradas,
         competencia_total_saidas=total_saidas,
+        totais_anteriores=totais_anteriores,
+        totais_acumulados=totais_acumulados,
         resumo_eventos=resumo_eventos,
         resumo_eventos_totais=resumo_eventos_totais,
         inc_contas=inc_contas,

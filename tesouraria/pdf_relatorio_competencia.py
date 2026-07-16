@@ -49,16 +49,6 @@ def _trunc(text: str, max_len: int) -> str:
     return s[: max_len - 1] + '…'
 
 
-def _filter_lancamentos_por_tipo(
-    lancs: list[LancamentoFinanceiro], flt: str
-) -> list[LancamentoFinanceiro]:
-    if flt == 'e':
-        return [l for l in lancs if l.tipo == TipoCategoriaFinanceira.ENTRADA]
-    if flt == 's':
-        return [l for l in lancs if l.tipo == TipoCategoriaFinanceira.SAIDA]
-    return list(lancs)
-
-
 def _totais_de_lancamentos(lancs: list[LancamentoFinanceiro]) -> tuple[Decimal, Decimal]:
     ent = Decimal('0')
     sai = Decimal('0')
@@ -70,6 +60,102 @@ def _totais_de_lancamentos(lancs: list[LancamentoFinanceiro]) -> tuple[Decimal, 
     return ent, sai
 
 
+def _participante(l: LancamentoFinanceiro) -> str:
+    if l.membro_id:
+        return l.membro.nome_completo
+    if l.visitante_id:
+        return l.visitante.nome_completo
+    return '—'
+
+
+def _lancamentos_de_tipo(
+    lancamentos_por_conta: dict[int, list[LancamentoFinanceiro]],
+    tipo: str,
+) -> list[LancamentoFinanceiro]:
+    out: list[LancamentoFinanceiro] = []
+    for lancamentos in lancamentos_por_conta.values():
+        out.extend(l for l in lancamentos if l.tipo == tipo)
+    return sorted(out, key=lambda l: (l.data, l.id or 0))
+
+
+def _append_tabela_lancamentos_por_data(
+    story: list,
+    *,
+    titulo: str,
+    lancamentos: list[LancamentoFinanceiro],
+    total_label: str,
+    h2_style,
+    body,
+) -> None:
+    story.append(Paragraph(_p(titulo), h2_style))
+    story.append(Spacer(1, 0.15 * cm))
+    hdr = [
+        _('Data'),
+        _('Conta/Caixa'),
+        _('Categoria'),
+        _('Descrição'),
+        _('Participante'),
+        _('Evento'),
+        _('Valor'),
+    ]
+    data = [[_p(h) for h in hdr]]
+    total = Decimal('0')
+    for l in lancamentos:
+        total += l.valor
+        ev = l.evento.nome if l.evento_id else '—'
+        data.append(
+            [
+                _p(l.data.strftime('%d/%m/%Y')),
+                _p(_trunc(l.conta.nome, 38)),
+                _p(_trunc(l.categoria.nome, 42)),
+                _p(_trunc(l.descricao, 70)),
+                _p(_trunc(_participante(l), 42)),
+                _p(_trunc(ev, 38)),
+                _p(_moeda(l.valor)),
+            ]
+        )
+    if len(data) == 1:
+        data.append(
+            [_p(_('Nenhum lançamento encontrado nesta competência.'))]
+            + ([''] * (len(hdr) - 1))
+        )
+    total_row = len(data)
+    data.append(
+        [
+            _p(''),
+            _p(''),
+            _p(''),
+            _p(''),
+            _p(''),
+            _p(total_label),
+            _p(_moeda(total)),
+        ]
+    )
+    tw = [
+        2.0 * cm,
+        3.6 * cm,
+        3.5 * cm,
+        6.2 * cm,
+        4.2 * cm,
+        3.6 * cm,
+        2.5 * cm,
+    ]
+    t = Table(data, colWidths=tw, repeatRows=1)
+    style_cmds = [
+        ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e9ecef')),
+        ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
+        ('FONTSIZE', (0, 0), (-1, -1), 7.5),
+        ('GRID', (0, 0), (-1, -1), 0.2, colors.grey),
+        ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
+        ('ROWBACKGROUNDS', (0, 1), (-1, total_row - 1), [colors.white, colors.HexColor('#f8f9fa')]),
+        ('FONTNAME', (0, total_row), (-1, total_row), 'Helvetica-Bold'),
+        ('BACKGROUND', (0, total_row), (-1, total_row), colors.HexColor('#e7f1ff')),
+    ]
+    t.setStyle(TableStyle(style_cmds))
+    story.append(t)
+    story.append(Spacer(1, 0.25 * cm))
+
+
 def build_competencia_relatorio_pdf(
     *,
     competencia: CompetenciaTesouraria,
@@ -77,10 +163,13 @@ def build_competencia_relatorio_pdf(
     lancamentos_por_conta: dict[int, list[LancamentoFinanceiro]],
     resumo_contas: list[dict],
     competencia_prev: CompetenciaTesouraria | None,
+    competencia_anterior_acumulado: CompetenciaTesouraria | None,
     saldo_trazido_anterior: Decimal | None,
     competencia_saldo_geral_final: Decimal,
     competencia_total_entradas: Decimal,
     competencia_total_saidas: Decimal,
+    totais_anteriores: dict[str, Decimal],
+    totais_acumulados: dict[str, Decimal],
     resumo_eventos: list[dict],
     resumo_eventos_totais: dict | None,
     inc_contas: bool,
@@ -137,179 +226,32 @@ def build_competencia_relatorio_pdf(
     flt = _filtro_movimento(apenas_entradas, apenas_saidas)
 
     if inc_contas:
-        story.append(Paragraph(_p(_('Caixas e contas')), h2_style))
-        story.append(
-            Paragraph(
-                _p(
-                    _(
-                        'Cada conta ou caixa com o detalhe de todos os lançamentos '
-                        'desta competência (respeitando os filtros «só entradas» ou '
-                        '«só saídas», quando ativos).'
-                    )
-                ),
-                body,
-            )
+        entradas = _lancamentos_de_tipo(
+            lancamentos_por_conta,
+            TipoCategoriaFinanceira.ENTRADA,
         )
-        story.append(Spacer(1, 0.25 * cm))
-        if not contas:
-            story.append(
-                Paragraph(_p(_('Nenhuma conta ou caixa cadastrada.')), body)
+        saidas = _lancamentos_de_tipo(
+            lancamentos_por_conta,
+            TipoCategoriaFinanceira.SAIDA,
+        )
+        if flt in ('all', 'e'):
+            _append_tabela_lancamentos_por_data(
+                story,
+                titulo=_('Entradas por data (contas e caixas juntas)'),
+                lancamentos=entradas,
+                total_label=_('Total Entradas'),
+                h2_style=h2_style,
+                body=body,
             )
-        hdr_lanc = [
-            _('Data'),
-            _('Tipo'),
-            _('Categoria'),
-            _('Descrição'),
-            _('Valor'),
-            _('Documento'),
-            _('Evento'),
-        ]
-        # Larguras para A4 paisagem (~26,7 cm úteis); evita sobreposição de células.
-        tw_lanc = [
-            2.2 * cm,
-            1.5 * cm,
-            3.5 * cm,
-            9.0 * cm,
-            2.3 * cm,
-            2.4 * cm,
-            4.5 * cm,
-        ]
-        for conta in contas:
-            story.append(Paragraph(_p(conta.nome), h_conta_style))
-            tipo_lbl = (
-                _('Banco')
-                if conta.tipo == TipoContaFinanceira.BANCO
-                else _('Caixa')
+        if flt in ('all', 's'):
+            _append_tabela_lancamentos_por_data(
+                story,
+                titulo=_('Saídas por data (contas e caixas juntas)'),
+                lancamentos=saidas,
+                total_label=_('Total Saídas'),
+                h2_style=h2_style,
+                body=body,
             )
-            ativa_lbl = _('Ativa') if conta.ativa else _('Inativa')
-            linha_conta = f'{tipo_lbl} · {ativa_lbl}'
-            story.append(Paragraph(_p(linha_conta), body))
-            if (conta.descricao or '').strip():
-                story.append(
-                    Paragraph(
-                        _p(_('Descrição da conta: %(txt)s') % {'txt': _trunc(conta.descricao, 200)}),
-                        body,
-                    )
-                )
-            raw_lancs = lancamentos_por_conta.get(conta.pk, [])
-            vis_lancs = _filter_lancamentos_por_tipo(raw_lancs, flt)
-            if not raw_lancs:
-                story.append(
-                    Paragraph(
-                        _p(_('Nenhum lançamento nesta competência.')),
-                        body,
-                    )
-                )
-                story.append(Spacer(1, 0.15 * cm))
-                continue
-            if not vis_lancs:
-                story.append(
-                    Paragraph(
-                        _p(
-                            _(
-                                'Nenhum lançamento corresponde ao filtro escolhido '
-                                '(só entradas / só saídas).'
-                            )
-                        ),
-                        body,
-                    )
-                )
-                story.append(Spacer(1, 0.15 * cm))
-                continue
-            data = [[_p(h) for h in hdr_lanc]]
-            for l in vis_lancs:
-                ev = l.evento.nome if l.evento_id else '—'
-                num_doc = (l.numero_documento or '').strip() or '—'
-                data.append(
-                    [
-                        _p(l.data.strftime('%d/%m/%Y')),
-                        _p(str(l.get_tipo_display())),
-                        _p(_trunc(l.categoria.nome, 56)),
-                        _p(_trunc(l.descricao, 110)),
-                        _p(_moeda(l.valor)),
-                        _p(_trunc(num_doc, 22)),
-                        _p(_trunc(ev, 42)),
-                    ]
-                )
-            te, ts = _totais_de_lancamentos(vis_lancs)
-            n0 = len(data)
-            if flt == 'all':
-                data.append(
-                    [
-                        _p(''),
-                        _p(''),
-                        _p(''),
-                        _p(_('Total entradas')),
-                        _p(_moeda(te)),
-                        _p(''),
-                        _p(''),
-                    ]
-                )
-                data.append(
-                    [
-                        _p(''),
-                        _p(''),
-                        _p(''),
-                        _p(_('Total saídas')),
-                        _p(_moeda(ts)),
-                        _p(''),
-                        _p(''),
-                    ]
-                )
-                data.append(
-                    [
-                        _p(''),
-                        _p(''),
-                        _p(''),
-                        _p(_('Saldo (entradas − saídas)')),
-                        _p(_moeda(te - ts)),
-                        _p(''),
-                        _p(''),
-                    ]
-                )
-            elif flt == 'e':
-                data.append(
-                    [
-                        _p(''),
-                        _p(''),
-                        _p(''),
-                        _p(_('Total entradas')),
-                        _p(_moeda(te)),
-                        _p(''),
-                        _p(''),
-                    ]
-                )
-            else:
-                data.append(
-                    [
-                        _p(''),
-                        _p(''),
-                        _p(''),
-                        _p(_('Total saídas')),
-                        _p(_moeda(ts)),
-                        _p(''),
-                        _p(''),
-                    ]
-                )
-            t = Table(data, colWidths=tw_lanc, repeatRows=1)
-            st_cmds = [
-                ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e9ecef')),
-                ('FONTNAME', (0, 0), (-1, 0), 'Helvetica-Bold'),
-                ('FONTSIZE', (0, 0), (-1, -1), 8),
-                ('GRID', (0, 0), (-1, -1), 0.2, colors.grey),
-                ('VALIGN', (0, 0), (-1, -1), 'MIDDLE'),
-                (
-                    'ROWBACKGROUNDS',
-                    (0, 1),
-                    (-1, n0 - 1),
-                    [colors.white, colors.HexColor('#f8f9fa')],
-                ),
-            ]
-            for r in range(n0, len(data)):
-                st_cmds.append(('FONTNAME', (0, r), (-1, r), 'Helvetica-Bold'))
-            t.setStyle(TableStyle(st_cmds))
-            story.append(t)
-            story.append(Spacer(1, 0.2 * cm))
 
     if inc_resumo_eventos:
         story.append(Paragraph(_p(_('Resumo por eventos')), h2_style))
@@ -392,34 +334,15 @@ def build_competencia_relatorio_pdf(
         story.append(t)
 
     if inc_resumo_geral:
-        story.append(Paragraph(_p(_('Resumo geral da competência')), h2_style))
-        continua_txt = (
-            _('Competência contínua: sim.')
-            if competencia.competencia_continua
-            else _('Competência contínua: não.')
-        )
-        story.append(Paragraph(_p(continua_txt), body))
+        story.append(Paragraph(_p(_('Resumos da Competência')), h2_style))
         story.append(Spacer(1, 0.2 * cm))
-        if flt == 'e':
-            hdr = [
-                _('Nome'),
-                _('Tipo'),
-                _('Total entradas (R$)'),
-            ]
-        elif flt == 's':
-            hdr = [
-                _('Nome'),
-                _('Tipo'),
-                _('Total saídas (R$)'),
-            ]
-        else:
-            hdr = [
-                _('Nome'),
-                _('Tipo'),
-                _('Entradas (R$)'),
-                _('Saídas (R$)'),
-                _('Saldo (R$)'),
-            ]
+        hdr = [
+            _('Nome'),
+            _('Tipo'),
+            _('Total Entradas (R$)'),
+            _('Total Saídas (R$)'),
+            _('Saldo (R$)'),
+        ]
         data = [[_p(h) for h in hdr]]
         for row in resumo_contas:
             conta = row['conta']
@@ -429,75 +352,54 @@ def build_competencia_relatorio_pdf(
                 if conta.tipo == TipoContaFinanceira.BANCO
                 else _('Caixa')
             )
-            if flt == 'e':
-                data.append([_p(conta.nome), _p(tipo_lbl), _p(_moeda(e))])
-            elif flt == 's':
-                data.append([_p(conta.nome), _p(tipo_lbl), _p(_moeda(s))])
-            else:
-                data.append(
-                    [
-                        _p(conta.nome),
-                        _p(tipo_lbl),
-                        _p(_moeda(e)),
-                        _p(_moeda(s)),
-                        _p(_moeda(e - s)),
-                    ]
-                )
+            data.append(
+                [
+                    _p(conta.nome),
+                    _p(tipo_lbl),
+                    _p(_moeda(e)),
+                    _p(_moeda(s)),
+                    _p(_moeda(e - s)),
+                ]
+            )
         first_footer_row = len(data)
-        if competencia.competencia_continua and saldo_trazido_anterior is not None:
-            prev_lbl = (
-                _('Saldo acumulado até %(mes)02d/%(ano)s')
-                % {
-                    'mes': competencia_prev.mes,
-                    'ano': competencia_prev.ano,
-                }
-                if competencia_prev
-                else _('Saldo acumulado (sem competência anterior)')
-            )
-            if flt == 'e':
-                data.append([_p(prev_lbl), _p(''), _p('—')])
-            elif flt == 's':
-                data.append([_p(prev_lbl), _p(''), _p('—')])
-            else:
-                data.append(
-                    [
-                        _p(prev_lbl),
-                        _p(''),
-                        _p('—'),
-                        _p('—'),
-                        _p(_moeda(saldo_trazido_anterior)),
-                    ]
-                )
-        if flt == 'e':
-            data.append(
-                [
-                    _p(_('Saldo geral (fechamento)')),
-                    '',
-                    _p(_moeda(competencia_total_entradas)),
-                ]
-            )
-        elif flt == 's':
-            data.append(
-                [
-                    _p(_('Saldo geral (fechamento)')),
-                    '',
-                    _p(_moeda(competencia_total_saidas)),
-                ]
-            )
+        data.append(
+            [
+                _p(
+                    _('Saldo da Competência (%(mes)02d/%(ano)s)')
+                    % {'mes': competencia.mes, 'ano': competencia.ano}
+                ),
+                _p(''),
+                _p(_moeda(competencia_total_entradas)),
+                _p(_moeda(competencia_total_saidas)),
+                _p(_moeda(competencia_total_entradas - competencia_total_saidas)),
+            ]
+        )
+        if competencia_anterior_acumulado:
+            anterior_label = _('Saldo anterior (competência %(mes)02d/%(ano)s)') % {
+                'mes': competencia_anterior_acumulado.mes,
+                'ano': competencia_anterior_acumulado.ano,
+            }
         else:
-            data.append(
-                [
-                    _p(_('Saldo geral (fechamento)')),
-                    '',
-                    _p(_moeda(competencia_total_entradas)),
-                    _p(_moeda(competencia_total_saidas)),
-                    _p(_moeda(competencia_saldo_geral_final)),
-                ]
-            )
-        if flt in ('e', 's'):
-            tw = [10 * cm, 3 * cm, 10.5 * cm]
-        else:
-            tw = [7 * cm, 3 * cm, 4.5 * cm, 4.5 * cm, 5 * cm]
+            anterior_label = _('Saldo anterior (sem competência anterior)')
+        data.append(
+            [
+                _p(anterior_label),
+                _p(''),
+                _p(_moeda(totais_anteriores['entradas'])),
+                _p(_moeda(totais_anteriores['saidas'])),
+                _p(_moeda(totais_anteriores['saldo'])),
+            ]
+        )
+        data.append(
+            [
+                _p(_('Saldo Geral Acumulado')),
+                _p(''),
+                _p(_moeda(totais_acumulados['entradas'])),
+                _p(_moeda(totais_acumulados['saidas'])),
+                _p(_moeda(totais_acumulados['saldo'])),
+            ]
+        )
+        tw = [7 * cm, 3 * cm, 4.5 * cm, 4.5 * cm, 5 * cm]
         t = Table(data, colWidths=tw)
         style_cmds = [
             ('BACKGROUND', (0, 0), (-1, 0), colors.HexColor('#e9ecef')),
@@ -518,6 +420,8 @@ def build_competencia_relatorio_pdf(
             )
         for r in range(first_footer_row, len(data)):
             style_cmds.append(('FONTNAME', (0, r), (-1, r), 'Helvetica-Bold'))
+            style_cmds.append(('BACKGROUND', (0, r), (-1, r), colors.HexColor('#e7f1ff')))
+        style_cmds.append(('BACKGROUND', (0, len(data) - 1), (-1, len(data) - 1), colors.HexColor('#d8e9ff')))
         t.setStyle(TableStyle(style_cmds))
         story.append(t)
 

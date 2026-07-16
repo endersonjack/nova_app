@@ -457,6 +457,11 @@ nav.app-sidebar {
   background-color: rgba(13, 110, 253, 0.1) !important;
 }
 
+.table > :not(caption) > .tesouraria-saldo-acumulado > * {
+  background-color: rgba(13, 110, 253, 0.18) !important;
+  border-top: 2px solid rgba(13, 110, 253, 0.32);
+}
+
 /* Perigo (exclusão) */
 .btn-app-danger {
   background-color: #dc2626 !important;
